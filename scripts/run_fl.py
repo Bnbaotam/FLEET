@@ -5,11 +5,15 @@
     python scripts/run_fl.py --strategy fedavg --clients 23 --seed 1 --port 8081 --gpu 1
     python scripts/run_fl.py --strategy fedavg --clients 06 --seed 0 --rounds 2 --max_batches 2   # smoke test
     python scripts/run_fl.py --strategy fedprox --clients 06 --seed 0 --val_frac 0.1 --fedprox_mu 0.001   # sweep point, tag fedprox-06c-val10-mu0.001
+    python scripts/run_fl.py --strategy fedrep --clients 23 --seed 1 --scaled   # Appendix A.4, tag fedrep-23c-scaled
 
 --fedadam_eta / --fedadambn_eta / --fedprox_mu / --fedcross_alpha override the default value (strategies/keys.py SWEEP) and only
 go with their own --strategy; the tag gets the value only if it differs from the default. The value is recorded in run.json
 ("hparams"). --data_dir (default data/processed_<NN>) holds <intersection>_{train,test}.pkl for every client; a missing file
 stops the launch before any process starts.
+--scaled (Appendix A.4, fedavg or fedrep with --clients 23 only): one scale factor per camera, i.e. the default data folder is
+data/processed_23_scaled (built by preprocessing/scale_per_camera.py); tag <strategy>-23c-scaled, hparams "scaled": true. The
+workers run exactly as without the flag, on the other folder.
 
 The server writes metrics.csv and rounds.csv (every client's ADE/FDE per round) into runs/_staging/<name>/; each client
 writes final_model.pth and per_sample_final.csv into its own subfolder. On success the folder
@@ -35,7 +39,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(ROOT / "scripts"))
 from strategies.keys import SWEEP, STRATEGIES, add_sweep_args, sweep_value  # noqa: E402
-from summarize import read_clients  # noqa: E402
+from summarize import SCALED_STRATEGIES, read_clients  # noqa: E402
 from log_run import git_state, log_run, new_run_id  # noqa: E402
 
 CONFIG = "configs/flowchain.yml"
@@ -113,8 +117,8 @@ def finish(stage: Path, run_id: str, tag: str, seed: int, rounds: int, clients: 
     metrics = {"num_rounds": rounds,
                **{f"final_{k}_px": float(final[f"{k}_mean_px"].iloc[0]) for k in ("ade", "fde", "ade_legacy", "fde_legacy")},
                "wall_clock_s": round(time.time() - start, 1)}
-    for c in clients:
-        assert (stage / c / "final_model.pth").is_file() and (stage / c / "per_sample_final.csv").is_file(), c
+    for c in clients:  # a zero-shot run (run_local.py --clients 17 --rounds 0) trains nothing and saves no model
+        assert (stage / c / "final_model.pth").is_file() == (rounds > 0) and (stage / c / "per_sample_final.csv").is_file(), c
     assert (stage / "git_state.json").is_file(), stage
     git = json.loads((stage / "git_state.json").read_text())
     log_run(tag=tag, seed=seed, metrics=metrics, config=CONFIG, note=note, command=" ".join(sys.argv), run_id=run_id,
@@ -126,12 +130,13 @@ def finish(stage: Path, run_id: str, tag: str, seed: int, rounds: int, clients: 
 
 
 def add_data_dir_arg(ap: argparse.ArgumentParser) -> None:
-    ap.add_argument("--data_dir", type=Path, default=None, help="folder with <intersection>_{train,test}.pkl (default data/processed_<NN>)")
+    ap.add_argument("--data_dir", type=Path, default=None, help="folder with <intersection>_{train,test}.pkl of every client "
+                    "(replaces the default folder named in the description)")
 
 
-def data_dir(a: argparse.Namespace) -> Path:
-    """--data_dir as an absolute path (the workers run in the repository root), default data/processed_<NN>."""
-    return ROOT / "data" / f"processed_{a.clients}" if a.data_dir is None else a.data_dir.resolve()
+def data_dir(a: argparse.Namespace, default: str) -> Path:
+    """--data_dir as an absolute path (the workers run in the repository root), else data/<default>."""
+    return ROOT / "data" / default if a.data_dir is None else a.data_dir.resolve()
 
 
 def parser() -> argparse.ArgumentParser:
@@ -145,24 +150,30 @@ def parser() -> argparse.ArgumentParser:
     ap.add_argument("--max_batches", type=int, default=None, help="smoke tests only; tags the run 'smoke-...'")
     ap.add_argument("--val_frac", type=float, default=0.0, help="carve this fraction of each client's train tracks into a validation set (0 = off)")
     add_sweep_args(ap)
+    ap.add_argument("--scaled", action="store_true", help="Appendix A.4, " + " or ".join(SCALED_STRATEGIES) + " with --clients 23 "
+                    "only: one scale factor per camera (data/processed_23_scaled); tags the run '...-scaled'")
     add_data_dir_arg(ap)
     ap.add_argument("--note", default="")
     return ap
 
 
 def run_tag(a: argparse.Namespace) -> str:
-    """<strategy>-<NN>c[-val<pct>][-<hyperparameter><value>, only if not the default], with a smoke- prefix for --max_batches runs."""
+    """<strategy>-<NN>c[-val<pct>][-<hyperparameter><value>, only if not the default][-scaled], with a smoke- prefix for --max_batches runs."""
+    assert not a.scaled or (a.strategy in SCALED_STRATEGIES and a.clients == "23"), \
+        "--scaled needs --strategy " + " or ".join(SCALED_STRATEGIES) + " and --clients 23"
     tag = f"{a.strategy}-{a.clients}c" + (f"-val{a.val_frac * 100:g}" if a.val_frac > 0 else "")
     value = sweep_value(a)
     if value is not None and value != SWEEP[a.strategy][1]:
         tag += f"-{SWEEP[a.strategy][0]}{value:g}"
+    tag += "-scaled" if a.scaled else ""
     return tag if a.max_batches is None else f"smoke-{tag}"
 
 
 def run_hparams(a: argparse.Namespace) -> dict:
-    """Recorded in run.json / index: val_frac and the sweep value if the strategy has one."""
+    """Recorded in run.json / index: val_frac, the sweep value if the strategy has one, and "scaled" if set."""
     value = sweep_value(a)
-    return {"val_frac": a.val_frac, **({} if value is None else {f"{a.strategy}_{SWEEP[a.strategy][0]}": value})}
+    return {"val_frac": a.val_frac, **({} if value is None else {f"{a.strategy}_{SWEEP[a.strategy][0]}": value}),
+            **({"scaled": True} if a.scaled else {})}
 
 
 def main() -> int:
@@ -172,8 +183,8 @@ def main() -> int:
 
     clients = read_clients(a.clients)
     tag = run_tag(a)
-    data = data_dir(a)
-    check_data(data, clients, "Build them with preprocessing/process_data.py or pass --data_dir.")
+    data = data_dir(a, "processed_23_scaled" if a.scaled else f"processed_{a.clients}")
+    check_data(data, clients, f"Build them with preprocessing/{'scale_per_camera' if a.scaled else 'process_data'}.py or pass --data_dir.")
     assert port_is_free(a.port), f"port {a.port} is in use; pick another --port"
 
     run_id, stage = new_stage(tag, a.seed)

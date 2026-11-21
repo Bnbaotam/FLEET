@@ -7,8 +7,8 @@ This repository holds what is needed to go from the output of the perception mod
 | Folder | Content |
 |---|---|
 | `data/` | Trajectory data of the Chattanooga camera views: the raw trajectory files and the processed files that training reads |
-| `preprocessing/` | The three data-preparation steps: track preprocessing, standardization constants, processed files |
-| `configs/` | Model configuration, the client lists of the two settings, and the standardization constants |
+| `preprocessing/` | The three data-preparation steps (track preprocessing, standardization constants, processed files) and the data scripts of the two appendix experiments |
+| `configs/` | Model configuration, the client lists, the standardization constants, and the scale factors of Appendix A.4 |
 | `src/` | The FlowChain forecasting model, data loading, metrics, and the federated learning strategies |
 | `scripts/` | Launchers for federated training and the baselines, and the scripts that summarize the results |
 | `tests/` | Unit tests of the data preparation, the data loader, the metrics and the strategies |
@@ -18,7 +18,7 @@ The paper evaluates two settings. Both use the same code and differ only in the 
 - **Six intersections** (`--clients 06`): six Chattanooga intersections, one client each.
 - **23 camera views** (`--clients 23`): 10 Chattanooga views, 11 CityFlow views and 2 TUMTraf views.
 
-## The process in six steps
+## The process in five steps
 
 ```
 perception output          one text file per camera, written by the detector and tracker (YOLO26 + ByteTrack)
@@ -149,6 +149,47 @@ python scripts/summarize.py --clients 23
 The table has one row per camera and one column per method; `local-pc` is the local-only baseline with per-camera constants and `fedavgft` is FedAvg with local fine-tuning.
 
 ADE and FDE are computed for the model after the last round, on the test split of each camera, from the best of 20 sampled trajectories.
+
+## The experiments of the appendix
+
+Both experiments use all 23 camera views, so running them needs the CityFlow and TUMTraf files as well (see "Data"). The data scripts also accept `configs/clients_23_chattanooga.txt` and `configs/clients_17_chattanooga.txt` to build the part that follows from the distributed views.
+
+### One scale factor per camera (Appendix A.4)
+
+FedAvg and FedRep are trained on the 23 views after the inputs of each camera are divided by one scale factor: the spread of the camera's training velocities relative to the spread pooled over all cameras. `configs/scale_per_camera_23.csv` holds the factors.
+
+```bash
+python preprocessing/scale_per_camera.py --clients configs/clients_23.txt     # writes data/processed_23_scaled
+python scripts/run_fl.py --strategy fedavg --clients 23 --seed 1 --scaled
+python scripts/run_fl.py --strategy fedrep --clients 23 --seed 1 --scaled
+python scripts/summarize.py --clients 23                                      # columns fedavg-scaled and fedrep-scaled
+```
+
+Errors stay in the pixels of the original image, because the metric converts the predictions back with the same constants.
+
+### Camera views outside the federation (Appendix A.5)
+
+The models of the six-intersection federation are evaluated at the 17 other camera views. Each of these views is read with the standardization constants of the six intersections, the constants the models were trained with.
+
+```bash
+python preprocessing/unseen_views.py                                          # writes data/processed_17_unseen
+
+# zero-shot: no training on the new view
+python scripts/run_local.py --clients 17 --seed 1 --init_from <FedAvg run id> --rounds 0
+python scripts/run_local.py --clients 17 --seed 1 --init_from <FedRep run id> --rounds 0 --head Broad_2
+python scripts/run_local.py --clients 17 --seed 1 --init_from <FedPer run id> --rounds 0 --head Broad_2
+
+# adaptation: five epochs on the training split of the new view
+python scripts/run_local.py --clients 17 --seed 1 --init_from <FedAvg run id> --rounds 5
+python scripts/run_local.py --clients 17 --seed 1 --init_from <FedRep run id> --rounds 5 --head mean --head_only
+python scripts/run_local.py --clients 17 --seed 1 --init_from <FedPer run id> --rounds 5 --head mean --head_only
+
+python scripts/summarize.py --clients 17
+```
+
+- `--init_from` takes the run id of a finished six-intersection run (step 4), and `--seed` must be the seed of that run.
+- Zero-shot: FedAvg applies its global model. FedRep and FedPer apply the shared encoder with the head of one member intersection, given with `--head`; the paper averages the error over the six heads, so there is one run per intersection.
+- Adaptation: FedAvg fine-tunes its whole model. FedRep and FedPer train a new head on the frozen encoder, starting from the mean of the six trained heads.
 
 ## Data
 

@@ -1,0 +1,5 @@
+# The 4 Chattanooga views of clients_17.txt, in its order (the views whose files are distributed)
+Pine_1
+Hwy27_2
+Georgia_1
+Lindsay_1

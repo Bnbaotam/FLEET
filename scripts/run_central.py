@@ -45,7 +45,7 @@ def main() -> int:
     a = parser().parse_args()
 
     clients = read_clients(a.clients)
-    data = data_dir(a)
+    data = data_dir(a, f"processed_{a.clients}")
     check_data(data, clients, "Build them with preprocessing/process_data.py or pass --data_dir.")
     tag = f"central-{a.clients}c"
     tag = tag if a.max_batches is None else f"smoke-{tag}"

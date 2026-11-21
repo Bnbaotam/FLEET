@@ -1,0 +1,19 @@
+# Appendix A.5: the 17 camera views of the 23-view setting outside the six-intersection federation (clients_23.txt minus
+# clients_06.txt, in the order of clients_23.txt). Data: data/processed_17_unseen (preprocessing/unseen_views.py)
+Pine_1
+Hwy27_2
+Georgia_1
+Lindsay_1
+C002
+C003
+C004
+C005
+C028
+C041
+C042
+C043
+C044
+C045
+C046
+s110_camera_basler_south1_8mm
+s110_camera_basler_south2_8mm

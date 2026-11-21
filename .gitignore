@@ -2,5 +2,7 @@ runs/
 __pycache__/
 *.pyc
 data/processed_per_camera/
+data/processed_23_scaled/
+data/processed_17_unseen/
 data/derived/
 .pytest_cache/

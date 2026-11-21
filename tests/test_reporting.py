@@ -201,7 +201,7 @@ def test_non_default_epoch_and_per_camera_local_runs_are_their_own_strategy(runs
     assert "# local-r25 [local-06c-r25]: n=1 runs: lr1" in table(df, "06", ["A", "B"], "evaluate", "test", "final", False, ["local-r25"])
     pc = table(df, "06", ["A", "B"], "evaluate", "test", "final", False, ["fedavg", "local-pc"]).splitlines()
     assert "# local-pc [local-06c-pc]: n=1 runs: pc1" in pc and pc[pc.index("ADE\tfedavg\tlocal-pc") + 1] == "A\t5.000 ± 1.414\t1.000 (n=1)"
-    for tag in ("diag-fedavg-06c", "local-06c-val10", "fedavg-23c-psstd", "fedavg-23c-pss", "fedrepzs-17c-dBroad_2"):
+    for tag in ("diag-fedavg-06c", "local-06c-val10", "fedavg-23c-val10-scaled"):
         assert not TAG.fullmatch(tag), tag
     assert [run_key(TAG.fullmatch(t)) for t in ("local-06c-r25", "local-23c-r3", "smoke-local-06c-r3", "local-06c", "fedprox-06c-mu0.001",
                                                 "local-23c-pc", "local-06c-r25-pc", "smoke-local-06c-r2-pc", "smoke-fedavgft-06c")] == \

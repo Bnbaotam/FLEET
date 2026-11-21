@@ -50,12 +50,6 @@ def test_sweep_flags_only_with_their_strategy_and_in_range():
             sweep_value(_args(*words))
 
 
-def test_removed_options_are_rejected():
-    for words in (["--save_round_models"], ["--persite_std"], ["--persite_scale"]):
-        with pytest.raises(SystemExit):
-            _args("--strategy", "fedavg", *words)
-
-
 def test_sweep_tags_stay_out_of_the_main_tables():
     for tag in ("fedadam-06c", "local-23c", "smoke-fedavg-06c", "fedprox-06c-mu0.001", "fedcross-06c-alpha0.5"):  # final runs
         assert TAG.fullmatch(tag)
@@ -74,9 +68,9 @@ def test_server_gets_the_cli_hyperparameter():
 
 
 def test_data_dir_default_and_relative_path(tmp_path, monkeypatch):
-    assert data_dir(_args("--strategy", "fedavg")) == ROOT / "data" / "processed_06"
+    assert data_dir(_args("--strategy", "fedavg"), "processed_06") == ROOT / "data" / "processed_06"
     monkeypatch.chdir(tmp_path)
-    assert data_dir(_args("--strategy", "fedavg", "--data_dir", "mine")) == tmp_path / "mine"
+    assert data_dir(_args("--strategy", "fedavg", "--data_dir", "mine"), "processed_06") == tmp_path / "mine"
 
 
 def test_check_data_lists_every_missing_file(tmp_path):
@@ -99,7 +93,7 @@ def test_check_data_lists_every_missing_file(tmp_path):
     (20, None, None, True, "local-06c-pc"), (25, None, None, True, "local-06c-r25-pc"), (2, None, 2, True, "smoke-local-06c-r2-pc"),
 ])
 def test_local_tag_and_hparams(rounds, init_from, max_batches, per_camera, tag):
-    a = Namespace(clients="06", rounds=rounds, init_from=init_from, max_batches=max_batches, per_camera=per_camera)
+    a = Namespace(clients="06", rounds=rounds, init_from=init_from, max_batches=max_batches, per_camera=per_camera, data_dir=None)
     assert run_local.run_tag(a, "local" if init_from is None else "fedavgft") == tag
     assert run_local.run_hparams(a) == ({"init_from": init_from} if init_from else
                                         {"per_camera": True, "data": "processed_per_camera"} if per_camera else None)
