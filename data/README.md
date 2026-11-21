@@ -36,6 +36,6 @@ The files of the same view in `processed_06/` and `processed_23/` hold the same 
 
 ## The other 13 views of the 23-view setting
 
-The 23-view setting also uses 11 views of CityFlow (C002, C003, C004, C005, C028, C041, C042, C043, C044, C045, C046) and 2 views of the TUMTraf Intersection dataset, sequence R02_S03 (s110_camera_basler_south1_8mm, s110_camera_basler_south2_8mm). Their files are not distributed here; the datasets are available from their providers. To build them, run YOLO26 with ByteTrack on the videos of these views and apply the data processing described in the main README.
+The 23-view setting also uses 11 views of CityFlow (C002, C003, C004, C005, C028, C041, C042, C043, C044, C045, C046) and 2 views of the TUMTraf Intersection dataset, sequence R02_S03 (s110_camera_basler_south1_8mm, s110_camera_basler_south2_8mm). Because of the usage restrictions of these datasets, their files are not distributed here. To build them, request access to the datasets from their providers, run YOLO26 with ByteTrack on the videos of these views, and follow the data processing described in the main README.
 
 The data files are Python pickles. Load pickles only from sources you trust.
