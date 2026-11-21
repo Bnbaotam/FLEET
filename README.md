@@ -201,7 +201,7 @@ python scripts/summarize.py --clients 17
 
 `data/README.md` lists the files and the number of tracks and windows per view.
 
-**CityFlow and TUMTraf.** The 23-view setting also uses 11 camera views of CityFlow and 2 of the TUMTraf Intersection dataset (sequence R02_S03). Because of the usage restrictions of these datasets, their trajectory files are not distributed here. To get the training and test data of these views, request access to the datasets from their providers, run YOLO26 with ByteTrack on the videos, and follow the same data processing: step 1 on the tracker output of each view, then step 3 with `configs/standardization_23.json`. Place the resulting files in `data/processed_23/` under the names listed in `configs/clients_23.txt`. The launchers stop with a list of the missing files if a view is absent.
+**CityFlow and TUMTraf.** The 23-view setting also uses 11 camera views of CityFlow and 2 of the TUMTraf Intersection dataset (sequence R02_S03). Because of the usage restrictions of these datasets, their trajectory files are not distributed here. To get the training and test data of these views, request access to the datasets from their providers, run YOLO26 with ByteTrack on the videos, and follow the data processing above (steps 1 to 3). Step 2 is already done for this setting: use `configs/standardization_23.json` in step 3. Place the resulting files in `data/processed_23/` under the names listed in `configs/clients_23.txt`.
 
 The data files are Python pickles. Load pickles only from sources you trust.
 
