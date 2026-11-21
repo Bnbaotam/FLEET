@@ -1,0 +1,14 @@
+# Packages the code imports, pinned to the versions of environment/requirements.lock.txt (full pip freeze of the experiment environment, Python 3.10.19).
+torch==2.9.1
+flwr==1.25.0
+numpy==2.2.6
+pandas==2.3.3
+scipy==1.15.3
+dill==0.4.0
+yacs==0.1.8
+ncls==0.0.70
+orjson==3.11.5
+POT==0.9.6.post1
+tqdm==4.67.1
+scikit-learn==1.7.2
+pytest==9.2.0

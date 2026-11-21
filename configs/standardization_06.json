@@ -1,0 +1,43 @@
+{
+ "cameras": [
+  "Broad_2",
+  "Georgia_2",
+  "Hwy27_1",
+  "Lindsay_2",
+  "Market_1",
+  "Pine_2"
+ ],
+ "n_rows": 293066,
+ "standardization": {
+  "position": {
+   "x": {
+    "mean": 19.882223,
+    "std": 11.292678
+   },
+   "y": {
+    "mean": 10.181157,
+    "std": 2.405957
+   }
+  },
+  "velocity": {
+   "x": {
+    "mean": 0.036804,
+    "std": 3.031695
+   },
+   "y": {
+    "mean": 0.0,
+    "std": 0.649847
+   }
+  },
+  "acceleration": {
+   "x": {
+    "mean": 0.0,
+    "std": 3.735559
+   },
+   "y": {
+    "mean": 0.04107,
+    "std": 1.414583
+   }
+  }
+ }
+}

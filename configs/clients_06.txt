@@ -1,0 +1,7 @@
+# Six-intersection setting (Chattanooga, Table 2). Data: data/processed_06
+Broad_2
+Georgia_2
+Hwy27_1
+Lindsay_2
+Market_1
+Pine_2

@@ -1,0 +1,60 @@
+{
+ "cameras": [
+  "Broad_2",
+  "Market_1",
+  "Pine_1",
+  "Pine_2",
+  "Hwy27_1",
+  "Hwy27_2",
+  "Georgia_1",
+  "Georgia_2",
+  "Lindsay_1",
+  "Lindsay_2",
+  "C002",
+  "C003",
+  "C004",
+  "C005",
+  "C028",
+  "C041",
+  "C042",
+  "C043",
+  "C044",
+  "C045",
+  "C046",
+  "s110_camera_basler_south1_8mm",
+  "s110_camera_basler_south2_8mm"
+ ],
+ "n_rows": 752937,
+ "standardization": {
+  "position": {
+   "x": {
+    "mean": 18.091689,
+    "std": 11.023442
+   },
+   "y": {
+    "mean": 7.725301,
+    "std": 4.097459
+   }
+  },
+  "velocity": {
+   "x": {
+    "mean": 0.0,
+    "std": 2.708475
+   },
+   "y": {
+    "mean": 0.022634,
+    "std": 0.829557
+   }
+  },
+  "acceleration": {
+   "x": {
+    "mean": 0.015204,
+    "std": 3.44303
+   },
+   "y": {
+    "mean": 0.079225,
+    "std": 1.531491
+   }
+  }
+ }
+}

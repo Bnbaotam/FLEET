@@ -1,0 +1,11 @@
+# The 10 Chattanooga views of the 23-view setting, in the order of clients_23.txt (the views whose files are distributed)
+Broad_2
+Market_1
+Pine_1
+Pine_2
+Hwy27_1
+Hwy27_2
+Georgia_1
+Georgia_2
+Lindsay_1
+Lindsay_2

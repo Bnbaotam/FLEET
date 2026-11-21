@@ -1,0 +1,6 @@
+runs/
+__pycache__/
+*.pyc
+data/processed_per_camera/
+data/derived/
+.pytest_cache/

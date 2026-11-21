@@ -1,0 +1,12 @@
+# FlowChain config shared by every intersection (the paper's 25 per-client ymls were identical
+# except DATA.DATASET_NAME, which the launcher now sets). Defaults: src/default_params.py
+MODEL:
+  TYPE: fastpredNF_CIF_separate_cond
+  ENCODER_TYPE: trajectron
+DATA:
+  TP:
+    PRED_STATE: state_v
+    ACCEPT_NAN: true
+SOLVER:
+  USE_SCHEDULER: true  # unused by the FL training loop; kept to match the paper configs
+  WEIGHT_DECAY: 0.0
