@@ -7,6 +7,7 @@ This repository also contains code from other projects. These parts remain under
 
 - FlowChain (Maeda and Ukita, ICCV 2023), https://github.com/meaten/FlowChain-ICCV2023
   The forecasting model in src/models and the data structures and data loading in src/data are taken from or adapted from FlowChain.
+  The folder runtime/src holds a second copy of these parts (models, data, metrics, utils.py and default_params.py) for the runtime experiments.
 
 - Trajectron++ (Salzmann et al., ECCV 2020), https://github.com/StanfordASL/Trajectron-plus-plus, MIT License
   FlowChain builds on the data structures and the encoder of Trajectron++.

@@ -6,3 +6,10 @@ data/processed_23_scaled/
 data/processed_17_unseen/
 data/derived/
 .pytest_cache/
+runtime/assets/
+runtime/results/
+runtime/output/
+runtime/data/
+runtime/src/data/TP/processed_data/
+*.engine
+*.mp4

@@ -12,6 +12,7 @@ This repository holds what is needed to go from the output of the perception mod
 | `src/` | The FlowChain forecasting model, data loading, metrics, and the federated learning strategies |
 | `scripts/` | Launchers for federated training and the baselines, and the scripts that summarize the results |
 | `tests/` | Unit tests of the data preparation, the data loader, the metrics and the strategies |
+| `runtime/` | The two runtime experiments on the edge device: parallel trajectory prediction and concurrent intersection pipelines, with the generator of the synthetic perception data (see `runtime/README.md`) |
 
 The paper evaluates two settings. Both use the same code and differ only in the client list:
 
@@ -191,6 +192,10 @@ python scripts/summarize.py --clients 17
 - Zero-shot: FedAvg applies its global model. FedRep and FedPer apply the shared encoder with the head of one member intersection, given with `--head`; the paper averages the error over the six heads, so there is one run per intersection.
 - Adaptation: FedAvg fine-tunes its whole model. FedRep and FedPer train a new head on the frozen encoder, starting from the mean of the six trained heads.
 
+## Runtime experiments
+
+The code of the paper's runtime experiments is in `runtime/`, with its own README: the prediction of trajectories with parallel workers on synthetic perception data, and several intersection pipelines running at the same time. The perception module is the YOLO26-L detector as an FP32 TensorRT engine with the ByteTrack tracker from Ultralytics. The multi-intersection experiment needs your own intersection videos.
+
 ## Data
 
 | Folder | Content |
@@ -207,7 +212,7 @@ The data files are Python pickles. Load pickles only from sources you trust.
 
 ## Acknowledgements
 
-The forecasting model in `src/models` and the data structures in `src/data` come from FlowChain (Maeda and Ukita, ICCV 2023, https://github.com/meaten/FlowChain-ICCV2023), which builds on Trajectron++ (Salzmann et al., ECCV 2020). The federated training uses Flower (https://flower.ai).
+The forecasting model in `src/models` and the data structures in `src/data` come from FlowChain (Maeda and Ukita, ICCV 2023, https://github.com/meaten/FlowChain-ICCV2023), which builds on Trajectron++ (Salzmann et al., ECCV 2020). The federated training uses Flower (https://flower.ai). The folder `runtime/src` holds a second copy of the FlowChain parts for the runtime experiments, which use Ultralytics (https://github.com/ultralytics/ultralytics) for detection and tracking.
 
 ## License
 
