@@ -5,7 +5,7 @@
     python scripts/run_local.py --clients 06 --seed 1 --per_camera                       # each camera with its own constants
     python scripts/run_local.py --clients 06 --seed 0 --rounds 2 --max_batches 2         # smoke test
     python scripts/run_local.py --clients 06 --seed 1 --init_from <fedavg run id> --rounds 5   # global model + local fine-tuning
-    python scripts/run_local.py --clients 17 --seed 1 --init_from <fedrep run id> --rounds 0 --head Broad_2   # Appendix A.5, zero-shot
+    python scripts/run_local.py --clients 17 --seed 1 --init_from <fedrep run id> --rounds 0 --head Broad   # Appendix A.5, zero-shot
 
 One process per intersection (strategies/local.py), all on --gpu. "Round" r = 1 local epoch (the FedAvg client's
 fl_local_train) + test evaluation, so 20 rounds match FedAvg's compute. Same init as the FL runs (the server-built model),

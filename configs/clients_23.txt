@@ -1,7 +1,7 @@
 # 23-view setting (Table 4): 10 Chattanooga views, 11 CityFlow views and 2 TUMTraf views. Data: data/processed_23
 # (only the 10 Chattanooga views are distributed). CityFlow C001 and C035 are not used.
-Broad_2
-Market_1
+Broad
+Market
 Pine_1
 Pine_2
 Hwy27_1

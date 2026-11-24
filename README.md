@@ -177,8 +177,8 @@ python preprocessing/unseen_views.py                                          # 
 
 # zero-shot: no training on the new view
 python scripts/run_local.py --clients 17 --seed 1 --init_from <FedAvg run id> --rounds 0
-python scripts/run_local.py --clients 17 --seed 1 --init_from <FedRep run id> --rounds 0 --head Broad_2
-python scripts/run_local.py --clients 17 --seed 1 --init_from <FedPer run id> --rounds 0 --head Broad_2
+python scripts/run_local.py --clients 17 --seed 1 --init_from <FedRep run id> --rounds 0 --head Broad
+python scripts/run_local.py --clients 17 --seed 1 --init_from <FedPer run id> --rounds 0 --head Broad
 
 # adaptation: five epochs on the training split of the new view
 python scripts/run_local.py --clients 17 --seed 1 --init_from <FedAvg run id> --rounds 5

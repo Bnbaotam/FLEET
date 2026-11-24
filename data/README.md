@@ -14,14 +14,14 @@ Trajectory data of the 10 Chattanooga camera views used in the paper, from about
 
 | Camera view | In the six-intersection setting | Training tracks | Training windows | Test tracks | Test windows |
 |---|---|---|---|---|---|
-| Broad_2 | yes | 601 | 57,523 | 151 | 16,727 |
+| Broad | yes | 601 | 57,523 | 151 | 16,727 |
 | Georgia_1 | no | 490 | 58,256 | 123 | 14,663 |
 | Georgia_2 | yes | 384 | 41,525 | 96 | 9,364 |
 | Hwy27_1 | yes | 356 | 34,971 | 90 | 11,034 |
 | Hwy27_2 | no | 245 | 34,678 | 62 | 12,217 |
 | Lindsay_1 | no | 309 | 32,272 | 78 | 6,748 |
 | Lindsay_2 | yes | 336 | 25,062 | 84 | 5,483 |
-| Market_1 | yes | 778 | 62,076 | 195 | 18,876 |
+| Market | yes | 778 | 62,076 | 195 | 18,876 |
 | Pine_1 | no | 326 | 40,317 | 82 | 8,559 |
 | Pine_2 | yes | 366 | 35,236 | 92 | 7,186 |
 

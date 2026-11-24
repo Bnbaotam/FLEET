@@ -80,7 +80,7 @@ def test_check_data_lists_every_missing_file(tmp_path):
     msg = str(e.value)
     assert "26 of the 46 processed files are missing" in msg and msg.endswith("hint")
     assert all(f"{c}_{s}.pkl" in msg for c in read_clients("23")[10:] for s in ("train", "test"))
-    assert "Broad_2_train.pkl" not in msg
+    assert "Broad_train.pkl" not in msg
     (tmp_path / "A_train.pkl").write_bytes(b"")
     with pytest.raises(FileNotFoundError, match="1 of the 2 processed files are missing"):
         check_data(tmp_path, ["A"], "")

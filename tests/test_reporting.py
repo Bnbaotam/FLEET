@@ -125,7 +125,7 @@ def test_window_table_path_longer_than_endpoint_when_turning():
 # ---- per-sample == aggregate on real data (GPU) ----------------------------------------------------------
 @CUDA
 def test_per_sample_mean_equals_aggregate(tmp_path):
-    cfg = load_config(str(ROOT / "configs/flowchain.yml"), "Broad_2", str(ROOT / "data/processed_06"), str(tmp_path), 0)
+    cfg = load_config(str(ROOT / "configs/flowchain.yml"), "Broad", str(ROOT / "data/processed_06"), str(tmp_path), 0)
     torch.manual_seed(0)
     model = Build_Model(cfg)
     loader = unified_loader(cfg, rand=False, split="test")
@@ -349,7 +349,7 @@ def test_summarize_sparse_central_rounds_and_new_strategies(tmp_path):
 
 # ---- validation carve -----------------------------------------------------------------------------------
 def _cfg(tmp_path, val_frac):
-    return load_config(str(ROOT / "configs/flowchain.yml"), "Broad_2", str(ROOT / "data/processed_06"), str(tmp_path), 0, val_frac)
+    return load_config(str(ROOT / "configs/flowchain.yml"), "Broad", str(ROOT / "data/processed_06"), str(tmp_path), 0, val_frac)
 
 
 def _ids(loader):

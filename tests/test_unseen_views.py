@@ -35,7 +35,7 @@ def test_clients_17_is_23_minus_06_in_23_order():
 
 
 def st06() -> dict:
-    return load_env(ROOT / "data/processed_06/Broad_2_test.pkl").standardization
+    return load_env(ROOT / "data/processed_06/Broad_test.pkl").standardization
 
 
 def test_federation_constants():
@@ -47,7 +47,7 @@ def test_federation_constants():
 
 def test_federation_constants_refuses_differing_files(tmp_path):
     for n in ("A_train.pkl", "A_test.pkl"):
-        (tmp_path / n).write_bytes((ROOT / "data/processed_06/Broad_2_test.pkl").read_bytes())
+        (tmp_path / n).write_bytes((ROOT / "data/processed_06/Broad_test.pkl").read_bytes())
     unseen_views.federation_constants(tmp_path)
     (tmp_path / "B_train.pkl").write_bytes((ROOT / "data/processed_23/Pine_1_test.pkl").read_bytes())  # other constants, no test file
     with pytest.raises(AssertionError, match="train/test pairs"):
@@ -94,8 +94,8 @@ def test_unseen_views_refuses_missing_files_and_member_views(tmp_path):
                                "--out_dir", str(tmp_path / "o")], capture_output=True, text=True)
     r = run(*read_clients("17"))  # only the 4 distributed views are present
     assert r.returncode != 0 and "26 of the 34 processed files are missing" in r.stderr and "C042_test.pkl" in r.stderr
-    r = run("Pine_1", "Broad_2")
-    assert r.returncode != 0 and "views of the federation" in r.stderr and "Broad_2" in r.stderr
+    r = run("Pine_1", "Broad")
+    assert r.returncode != 0 and "views of the federation" in r.stderr and "Broad" in r.stderr
     assert not (tmp_path / "o").exists()
 
 
@@ -198,7 +198,7 @@ def ns(**kw):
 
 @pytest.mark.parametrize("src,kw,strategy,tag", [
     ("fedavg", {}, "fedavgzs", "fedavgzs-17c"),
-    ("fedrep", {"head": "Broad_2"}, "fedrepzs", "fedrepzs-17c-dBroad_2"),
+    ("fedrep", {"head": "Broad"}, "fedrepzs", "fedrepzs-17c-dBroad"),
     ("fedper", {"head": "Pine_2", "max_batches": 2}, "fedperzs", "smoke-fedperzs-17c-dPine_2"),
     ("fedavg", {"rounds": 5}, "fedavgft", "fedavgft-17c"),
     ("fedrep", {"rounds": 5, "head": "mean", "head_only": True}, "fedrepad", "fedrepad-17c"),
@@ -209,12 +209,12 @@ def test_unseen_strategy_and_tag(src, kw, strategy, tag):
 
 
 @pytest.mark.parametrize("src,kw,match", [
-    ("fedavg", {"head": "Broad_2"}, "--head"), ("fedavg", {"rounds": 5, "head": "mean", "head_only": True}, "--head"),
+    ("fedavg", {"head": "Broad"}, "--head"), ("fedavg", {"rounds": 5, "head": "mean", "head_only": True}, "--head"),
     ("fedrep", {}, "--head"), ("fedper", {"rounds": 5, "head_only": True}, "--head"),
-    ("fedrep", {"rounds": 5, "head": "mean"}, "--head_only"), ("fedrep", {"head": "Broad_2", "head_only": True}, "--head_only"),
+    ("fedrep", {"rounds": 5, "head": "mean"}, "--head_only"), ("fedrep", {"head": "Broad", "head_only": True}, "--head_only"),
     ("fedavg", {"rounds": 5, "head_only": True}, "--head_only"),
     ("fedrep", {"head": "mean"}, "donor intersection"), ("fedrep", {"head": "Pine_1"}, "donor intersection"),
-    ("fedrep", {"rounds": 5, "head": "Broad_2", "head_only": True}, "mean"), ("fedavg", {"rounds": -1}, "-1")])
+    ("fedrep", {"rounds": 5, "head": "Broad", "head_only": True}, "mean"), ("fedavg", {"rounds": -1}, "-1")])
 def test_unseen_strategy_rejects(src, kw, match):
     with pytest.raises(AssertionError, match=match):
         run_local.unseen_strategy(ns(**kw), src)
@@ -234,7 +234,7 @@ def test_hparams_and_data_dir(tmp_path):
     assert run_local.local_data_dir(ns(clients="23", init_from=None)) == ROOT / "data" / "processed_23"
 
 
-@pytest.mark.parametrize("extra", [["--rounds", "0"], ["--head", "Broad_2"], ["--head_only"]])
+@pytest.mark.parametrize("extra", [["--rounds", "0"], ["--head", "Broad"], ["--head_only"]])
 def test_17_only_flags_refused_with_06(monkeypatch, extra):
     monkeypatch.setattr(sys, "argv", ["run_local.py", "--clients", "06", "--seed", "0", *extra])
     with pytest.raises(AssertionError, match="--clients 17 only"):
@@ -307,12 +307,12 @@ def test_merge_site_parts_accepts_round_0_only_for_zero_rounds(tmp_path):
 
 # ---- TAG and summarize ----------------------------------------------------------------------------------------------------------
 def test_new_tags():
-    keys = {t: run_key(TAG.fullmatch(t)) for t in ("fedrepzs-17c-dBroad_2", "smoke-fedperzs-17c-dPine_2", "fedavgzs-17c", "fedavgft-17c",
+    keys = {t: run_key(TAG.fullmatch(t)) for t in ("fedrepzs-17c-dBroad", "smoke-fedperzs-17c-dPine_2", "fedavgzs-17c", "fedavgft-17c",
                                                    "fedrepad-17c", "fedperad-17c", "fedrepzs-17c-ds110_camera_basler_south1_8mm")}
-    assert list(keys.values()) == ["fedrepzs-dBroad_2", "fedperzs-dPine_2", "fedavgzs", "fedavgft", "fedrepad", "fedperad",
+    assert list(keys.values()) == ["fedrepzs-dBroad", "fedperzs-dPine_2", "fedavgzs", "fedavgft", "fedrepad", "fedperad",
                                    "fedrepzs-ds110_camera_basler_south1_8mm"]
-    assert TAG.fullmatch("fedrepzs-17c-dBroad_2")["nn"] == "17"
-    for bad in ("fedrepzs-17c", "fedavg-06c-dBroad_2", "fedavgzs-17c-dBroad_2", "fedrepzs-06c-dBroad_2"):
+    assert TAG.fullmatch("fedrepzs-17c-dBroad")["nn"] == "17"
+    for bad in ("fedrepzs-17c", "fedavg-06c-dBroad", "fedavgzs-17c-dBroad", "fedrepzs-06c-dBroad"):
         with pytest.raises(AssertionError):
             run_key(TAG.fullmatch(bad))
 
@@ -326,13 +326,13 @@ def test_release_tags_parse_as_before():
 
 def test_summarize_17_zero_shot_donor_and_adaptation_columns():
     """Zero-shot runs (round 0) and adaptation runs (rounds 1..R) in one table, one column per donor head, in ORDER."""
-    runs = (("z", "fedavgzs-17c", [0], (4, 6)), ("d1", "fedrepzs-17c-dBroad_2", [0], (5, 7)), ("d2", "fedrepzs-17c-dPine_2", [0], (1, 3)),
+    runs = (("z", "fedavgzs-17c", [0], (4, 6)), ("d1", "fedrepzs-17c-dBroad", [0], (5, 7)), ("d2", "fedrepzs-17c-dPine_2", [0], (1, 3)),
             ("f", "fedavgft-17c", [1, 2], (3, 5)), ("ad", "fedrepad-17c", [1, 2], (2, 2)))
     df = pd.DataFrame([{"run_id": r, "tag": tag, "strategy": tag.split("-")[0], "phase": "evaluate", "split": "test", "intersection": c,
                         "round": rnd, "ade_px": v + rnd, "fde_px": 2 * v, "ade_legacy_px": v, "fde_legacy_px": v}
                        for r, tag, rounds, vals in runs for rnd in rounds for c, v in zip("AB", vals)])
     out = table(df, "17", ["A", "B"], "evaluate", "test", "final", False, list(ORDER)).splitlines()
-    assert out[out.index("ADE\tfedavgzs\tfedavgft\tfedrepzs-dBroad_2\tfedrepzs-dPine_2\tfedrepad") + 3] == \
+    assert out[out.index("ADE\tfedavgzs\tfedavgft\tfedrepzs-dBroad\tfedrepzs-dPine_2\tfedrepad") + 3] == \
         "Average\t5.000 (n=1)\t6.000 (n=1)\t6.000 (n=1)\t2.000 (n=1)\t4.000 (n=1)"  # final round: 0 for zero-shot, 2 for adaptation
     assert "# fedrepzs-dPine_2 [fedrepzs-17c-dPine_2]: n=1 runs: d2" in out
     with pytest.raises(AssertionError, match="runs of one strategy differ in their number of rounds"):

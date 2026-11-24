@@ -120,7 +120,7 @@ def test_scaled_files_of_the_distributed_views(scaled_dir):
     table's k, and equal to it in everything else (compare_envs after restoring the two)."""
     k = spc.read_table(TABLE).k
     assert sorted(p.name for p in scaled_dir.iterdir()) == sorted(f"{c}_{s}.pkl" for c in CHATTANOOGA for s in ("train", "test"))
-    assert k["Broad_2"] < 1 < k["Lindsay_2"]
+    assert k["Broad"] < 1 < k["Lindsay_2"]
     for cam in CHATTANOOGA:
         for split in ("train", "test"):
             scaled, raw = load_env(scaled_dir / f"{cam}_{split}.pkl"), load_env(ROOT / f"data/processed_23/{cam}_{split}.pkl")
@@ -136,7 +136,7 @@ def test_scaled_files_of_the_distributed_views(scaled_dir):
 
 def test_scale_per_camera_lists_missing_files(tmp_path):
     clients = tmp_path / "clients.txt"
-    clients.write_text("Broad_2\nC042\n")
+    clients.write_text("Broad\nC042\n")
     r = subprocess.run([sys.executable, str(ROOT / "preprocessing/scale_per_camera.py"), "--clients", str(clients), "--out_dir", str(tmp_path / "o")],
                        capture_output=True, text=True)
     assert r.returncode != 0 and "2 of the 4 processed files are missing" in r.stderr and "C042_train.pkl" in r.stderr
@@ -227,7 +227,7 @@ def test_run_fl_scaled_stops_on_missing_files(tmp_path, monkeypatch):
     monkeypatch.setattr(sys, "argv", [*sys.argv, "--data_dir", str(d)])
     with pytest.raises(FileNotFoundError, match="26 of the 46 processed files are missing") as e:
         run_fl.main()
-    assert "C042_test.pkl" in str(e.value) and "Broad_2_train.pkl" not in str(e.value)
+    assert "C042_test.pkl" in str(e.value) and "Broad_train.pkl" not in str(e.value)
     assert not (tmp_path / "runs").exists()
 
 

@@ -88,8 +88,8 @@ def test_velocity_metric_known_values():
 
 @CUDA
 def test_velocity_metric_real_batch(tmp_path):
-    """Real Broad_2 test batch with pred_st = gt_st: corrected ADE ~ 0, legacy ADE > 0."""
-    cfg = _cfg("06", "Broad_2", tmp_path)
+    """Real Broad test batch with pred_st = gt_st: corrected ADE ~ 0, legacy ADE > 0."""
+    cfg = _cfg("06", "Broad", tmp_path)
     batch = to_cuda(next(iter(unified_loader(cfg, rand=False, split="test"))))
     batch[("pred_st", 0)] = batch["gt_st"].clone()
     out = _denormalize_and_score(Build_Metrics(cfg), batch)

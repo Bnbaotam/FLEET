@@ -55,7 +55,7 @@ TAG = re.compile(r"(smoke-)?(?P<strategy>[a-z]+)-(?P<nn>\d\d)c(-(?:eta|mu|alpha)
 def run_key(m: re.Match) -> str:
     """Strategy name of a TAG match in the tables: the tag's strategy, plus -r<epochs> for a non-default-epoch local run (local-r25),
     -pc for a per-camera local run (local-pc), -scaled for a scaled run (fedavg-scaled) and -d<intersection> for a zero-shot run with
-    that donor's head (fedrepzs-dBroad_2)."""
+    that donor's head (fedrepzs-dBroad)."""
     assert m["epochs"] is None or m["strategy"] == "local", m.group(0)
     assert m["pc"] is None or m["strategy"] == "local", m.group(0)
     assert m["scaled"] is None or (m["strategy"] in SCALED_STRATEGIES and m["nn"] == "23"), m.group(0)
