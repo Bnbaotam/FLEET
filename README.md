@@ -74,8 +74,6 @@ python scripts/run_local.py   --clients 06 --seed 1                             
 python scripts/run_local.py   --clients 06 --seed 1 --init_from <run id> --rounds 5   # a finished federated run, fine-tuned at each camera
 ```
 
-On one NVIDIA A100, a federated run of 20 rounds took 8 to 12 hours and the centralized baseline 15 to 28 hours.
-
 ## Results
 
 Each run writes a folder `runs/<run id>/` with the error of every client after every round, the final model of every client and the logs. To summarize all runs:
@@ -111,4 +109,4 @@ The forecasting model in `src/models` and the data structures in `src/data` come
 
 ## License
 
-The code written for FLEET is released under the Apache License 2.0 (see `LICENSE`). The parts taken from FlowChain and Trajectron++ remain under the terms of their authors (see `NOTICE`).
+The code written for FLEET is released under the Apache License 2.0 (see `LICENSE`). The parts taken from FlowChain and Trajectron++ remain under the terms of their authors (see `NOTICE`). The runtime benchmarks use Ultralytics for detection and tracking, which is installed separately and is licensed by its authors under AGPL-3.0.
