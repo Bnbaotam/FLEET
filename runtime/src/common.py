@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+"""Shared helpers of the runtime pipeline: model input from tracker results, data loading and drawing of trajectories."""
+
 import os
 import time
 import cv2

@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+"""Collects the per-round metrics of all logged runs into combined tables."""
+
 from __future__ import annotations
 
 import argparse
@@ -36,7 +38,7 @@ def collect(runs_dir: Path, out_dir: Path, include_smoke: bool) -> tuple[pd.Data
 
 
 def main() -> None:
-    ap = argparse.ArgumentParser()
+    ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--include_smoke", action="store_true")
     ap.add_argument("--out", type=Path, default=ROOT / "data" / "derived")
     a = ap.parse_args()

@@ -1,3 +1,5 @@
+"""Unit tests of the options, run tags and input checks of the training launchers."""
+
 import json
 import sys
 from argparse import Namespace

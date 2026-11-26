@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+"""Summarizes the runs into tables of forecasting errors per camera and method, with mean and standard deviation over seeds."""
+
 from __future__ import annotations
 
 import argparse
@@ -110,7 +112,7 @@ def table(df: pd.DataFrame, nn: str, clients: list[str], phase: str, split: str,
 
 
 def main() -> None:
-    ap = argparse.ArgumentParser()
+    ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--clients", required=True, choices=["06", "17", "23"])
     ap.add_argument("--phase", default="evaluate", choices=["evaluate", "fit"])
     ap.add_argument("--split", default="test", choices=["test", "val"])

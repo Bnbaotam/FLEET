@@ -1,3 +1,5 @@
+"""Unit tests of the data loader and the ADE/FDE metric."""
+
 import hashlib
 import sys
 from pathlib import Path

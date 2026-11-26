@@ -1,3 +1,6 @@
+"""Worker of the local-only baseline: trains and evaluates the model of one client on its own data, without communication.
+It can also start from a given model, to fine-tune it or only evaluate it."""
+
 import argparse
 import json
 import os
@@ -33,7 +36,7 @@ def train_head_only(client: TrajectoryClient, frozen: dict) -> float:
 
 
 def main():
-    ap = argparse.ArgumentParser()
+    ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--config_file", required=True)
     ap.add_argument("--data_dir", required=True)
     ap.add_argument("--output_dir", required=True)

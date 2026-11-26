@@ -1,3 +1,5 @@
+"""Compares two processed data files and fails on any difference between them."""
+
 import types
 
 import dill

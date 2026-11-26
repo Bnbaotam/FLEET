@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+"""Launches the centralized baseline: one model trained on the pooled training data of all clients, without federation."""
+
 from __future__ import annotations
 
 import argparse
@@ -16,7 +18,7 @@ from summarize import read_clients  # noqa: E402
 
 
 def parser() -> argparse.ArgumentParser:
-    ap = argparse.ArgumentParser()
+    ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--clients", required=True, choices=["06", "23"])
     ap.add_argument("--seed", type=int, required=True)
     ap.add_argument("--rounds", type=int, default=20, help="epochs over the pooled set")

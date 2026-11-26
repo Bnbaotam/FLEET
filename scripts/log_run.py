@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+"""Records an experiment run with its configuration, seed, git state and metrics in an append-only log of runs."""
+
 from __future__ import annotations
 
 import argparse
@@ -101,7 +103,7 @@ def log_run(*, tag: str, seed: int, metrics: dict, config: str | None = None, no
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser()
+    ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--tag", required=True, help="experiment name, e.g. baseline, lr-sweep")
     ap.add_argument("--seed", type=int, required=True)
     ap.add_argument("--metrics", required=True, help="JSON object, or @file.json")

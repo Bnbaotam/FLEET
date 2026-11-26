@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+"""Step 3 of the data preparation: turns the raw trajectory files into the processed files that training reads."""
+
 from __future__ import annotations
 
 import argparse
@@ -181,7 +183,7 @@ def camera_standardization(constants: dict, cameras: list[str]) -> dict:
 
 
 def main() -> None:
-    ap = argparse.ArgumentParser()
+    ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--raw_dir", type=Path, required=True, help="folder with <camera>_{train,test}.pkl of step 1")
     ap.add_argument("--clients", type=Path, required=True, help="clients file: the cameras to process")
     ap.add_argument("--standardization", type=Path, required=True, help="JSON of compute_standardization.py")

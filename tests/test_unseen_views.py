@@ -1,3 +1,5 @@
+"""Unit tests of the data preparation, evaluation and adaptation for camera views outside the federation."""
+
 import argparse
 import json
 import subprocess

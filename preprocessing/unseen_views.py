@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+"""Writes the processed files of camera views outside a federation with the standardization constants of that federation."""
+
 from __future__ import annotations
 
 import argparse
@@ -32,7 +34,7 @@ def unseen_env(env, st: dict, radius: dict):
 
 
 def main() -> None:
-    ap = argparse.ArgumentParser()
+    ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--processed_dir", type=Path, default=ROOT / "data" / "processed_23", help="processed files of the 23-view setting")
     ap.add_argument("--constants_dir", type=Path, default=ROOT / "data" / "processed_06", help="processed files of the federation")
     ap.add_argument("--clients", type=Path, default=ROOT / "configs" / "clients_17.txt", help="clients file: the views to write")

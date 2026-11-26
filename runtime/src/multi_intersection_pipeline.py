@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+"""Runs the perception and prediction pipelines of several intersections at once and measures their throughput and latency."""
+
 import os
 os.environ.setdefault("TF_CPP_MIN_LOG_LEVEL", "3")
 os.environ.setdefault("ABSL_LOGGING_STDERR_THRESHOLD", "3")

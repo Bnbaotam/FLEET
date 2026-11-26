@@ -1,3 +1,5 @@
+"""Unit tests of the run logging and the git state it records."""
+
 import json
 import shutil
 import subprocess

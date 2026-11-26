@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+"""Writes copies of the processed files with one scale factor per camera view applied to the model inputs."""
+
 from __future__ import annotations
 
 import argparse
@@ -92,7 +94,7 @@ def scaled_env(env, k: float):
 
 
 def main() -> None:
-    ap = argparse.ArgumentParser()
+    ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--processed_dir", type=Path, default=ROOT / "data" / "processed_23", help="processed files of the 23-view setting")
     ap.add_argument("--clients", type=Path, required=True, help="clients file: the cameras to scale")
     ap.add_argument("--table", type=Path, default=ROOT / "configs" / "scale_per_camera_23.csv")

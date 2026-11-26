@@ -1,3 +1,5 @@
+"""Flower client of the federated strategies: trains and evaluates one camera's model and exchanges parameters with the server."""
+
 import argparse
 import os
 import time
@@ -172,7 +174,7 @@ assert set(CLIENTS) == set(STRATEGIES)
 
 
 def main():
-    ap = argparse.ArgumentParser()
+    ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--strategy", required=True, choices=STRATEGIES)
     ap.add_argument("--config_file", required=True)
     ap.add_argument("--intersection", required=True)

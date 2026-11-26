@@ -1,3 +1,5 @@
+"""Unit tests of the reporting path, from the logging of the metrics to the summary tables."""
+
 import json
 import sys
 from pathlib import Path

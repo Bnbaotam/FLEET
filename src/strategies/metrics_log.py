@@ -1,3 +1,5 @@
+"""Server-side logger of the metrics every client reports in each round of a run, per client and averaged over clients."""
+
 import csv
 import math
 import os

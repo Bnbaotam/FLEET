@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+"""Measures the throughput of FlowChain trajectory prediction with parallel workers on stored perception data."""
+
 import os
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 os.environ.setdefault("TF_CPP_MIN_LOG_LEVEL", "3")

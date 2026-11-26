@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+"""Prediction stage of the runtime pipeline: forecasts the trajectories of tracked objects with a pool of FlowChain workers."""
+
 import os
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 os.environ.setdefault("TF_CPP_MIN_LOG_LEVEL", "3")

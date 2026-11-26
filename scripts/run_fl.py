@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+"""Launches one federated training run on this machine: a Flower server and one client process per camera."""
+
 from __future__ import annotations
 
 import argparse
@@ -118,7 +120,7 @@ def data_dir(a: argparse.Namespace, default: str) -> Path:
 
 
 def parser() -> argparse.ArgumentParser:
-    ap = argparse.ArgumentParser()
+    ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--strategy", required=True, choices=STRATEGIES)
     ap.add_argument("--clients", required=True, choices=["06", "23"])
     ap.add_argument("--seed", type=int, required=True)

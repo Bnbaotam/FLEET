@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+"""Generates synthetic perception data (objects moving through the image) as input for benchmarking trajectory prediction."""
+
 import argparse
 import json
 import os

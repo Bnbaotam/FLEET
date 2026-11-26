@@ -1,3 +1,5 @@
+"""Flower server strategy that implements FedCross for FlowChain."""
+
 from collections import OrderedDict
 from typing import Dict, List, Tuple, Optional
 

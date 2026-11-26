@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+"""Launches the local-only baseline: every client trains its own model on its own data, without communication.
+It can also start the clients from a trained federated model, to fine-tune it locally or to evaluate it at new camera views."""
+
 from __future__ import annotations
 
 import argparse
@@ -160,7 +163,7 @@ def build_hint(a: argparse.Namespace) -> str:
 
 
 def parser() -> argparse.ArgumentParser:
-    ap = argparse.ArgumentParser()
+    ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--clients", required=True, choices=["06", "17", "23"])
     ap.add_argument("--seed", type=int, required=True)
     ap.add_argument("--rounds", type=int, default=ROUNDS)

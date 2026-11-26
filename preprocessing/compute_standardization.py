@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+"""Step 2 of the data preparation: computes the standardization constants of the model inputs from the training trajectories."""
+
 from __future__ import annotations
 
 import argparse
@@ -53,7 +55,7 @@ def constants(raw_dir: Path, cameras: list[str]) -> dict:
 
 
 def main() -> None:
-    ap = argparse.ArgumentParser()
+    ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--raw_dir", type=Path, required=True, help="folder with <camera>_train.pkl of step 1")
     ap.add_argument("--clients", type=Path, required=True, help="clients file: the cameras whose training files are used")
     ap.add_argument("--out", type=Path, required=True, help="JSON file to write")

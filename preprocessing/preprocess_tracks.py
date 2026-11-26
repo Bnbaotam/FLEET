@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+"""Step 1 of the data preparation: turns the tracker output of one camera view into raw trajectory files for training and testing."""
+
 from __future__ import annotations
 
 import argparse
@@ -87,7 +89,7 @@ def preprocess(path: Path, delta_time: float, orig_fps: float, min_movement: flo
 
 
 def main() -> None:
-    ap = argparse.ArgumentParser()
+    ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--data", "-d", type=Path, required=True, help="MOT-format text file of one camera view")
     ap.add_argument("--train-output", type=Path, required=True)
     ap.add_argument("--test-output", type=Path, required=True)

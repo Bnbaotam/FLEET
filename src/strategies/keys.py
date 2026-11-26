@@ -1,3 +1,5 @@
+"""The model parameters each federated strategy exchanges with the server, and the tunable hyperparameter of each strategy."""
+
 import argparse
 from typing import List, Optional
 import torch

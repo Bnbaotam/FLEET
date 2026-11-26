@@ -1,3 +1,5 @@
+"""Unit tests of the FedAdam variant that averages the BatchNorm buffers."""
+
 import sys
 from pathlib import Path
 

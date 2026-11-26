@@ -1,3 +1,5 @@
+"""Flower server for all federated strategies: builds the initial model, aggregates the client updates and logs the results."""
+
 import argparse
 import time
 from datetime import timedelta
@@ -100,7 +102,7 @@ def build_strategy(name: str, model, num_clients: int, num_rounds: int, logger: 
 
 
 def main():
-    ap = argparse.ArgumentParser()
+    ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--strategy", required=True, choices=STRATEGIES)
     ap.add_argument("--config_file", required=True)
     ap.add_argument("--intersection", required=True, help="any client; only used to build the model for its shapes")

@@ -1,3 +1,5 @@
+"""Helpers that let the non-federated baselines start from the same initial model and log results like the federated runs."""
+
 import json
 from pathlib import Path
 from types import SimpleNamespace

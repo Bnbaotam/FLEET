@@ -1,3 +1,5 @@
+"""Worker of the centralized baseline: trains one model on the pooled training data of all clients and tests it on each client."""
+
 import argparse
 import time
 from pathlib import Path
@@ -15,7 +17,7 @@ from utils import load_config, seed_everything
 
 
 def main():
-    ap = argparse.ArgumentParser()
+    ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--config_file", required=True)
     ap.add_argument("--data_dir", required=True)
     ap.add_argument("--output_dir", required=True, help="logs only; per-site outputs go to <run_dir>/<site>/")

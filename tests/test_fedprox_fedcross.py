@@ -1,3 +1,5 @@
+"""Unit tests of the FedProx client and the FedCross strategy."""
+
 import sys
 from pathlib import Path
 from types import SimpleNamespace

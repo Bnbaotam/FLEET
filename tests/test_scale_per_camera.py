@@ -1,3 +1,5 @@
+"""Unit tests of the scaling with one factor per camera view and of the runs on the scaled data."""
+
 import subprocess
 import sys
 from pathlib import Path

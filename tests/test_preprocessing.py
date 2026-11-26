@@ -1,3 +1,5 @@
+"""Unit tests of the data preparation: track preprocessing, standardization constants and processed files."""
+
 import json
 import pickle
 import subprocess
