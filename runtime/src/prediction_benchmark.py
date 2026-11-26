@@ -1,44 +1,4 @@
 #!/usr/bin/env python3
-"""
-prediction_benchmark.py — Measure pure FlowChain prediction throughput in isolation.
-
-Input: a .pkl produced by generate_perception.py (list of camera packets).
-Each packet is:  {"frame_bgr": ndarray, "perception_df": DataFrame,
-                  "frame_idx": int, "cam_t_emit": float}
-
-The benchmark feeds these packets through the SAME core prediction logic used by
-the current prediction_processor.py, measuring:
-  - prep_ms   : data prep (history build, env build, batch build)
-  - infer_ms  : model.predict + denormalize
-  - post_ms   : pred_map assembly
-  - total_ms  : full call
-
-Per-worker FPS and aggregate FPS are reported. An optional --sweep-workers
-flag runs multiple configurations automatically.
-
-Additions for the Jetson AGX Thor runs: --infer-mode per-agent, a reference mode that runs model.predict once per
-agent (batch size 1) on the same agents as the batched mode; the batched mode is unchanged.
-Also: result timeout 600 -> 3600 s, total_p99_ms, and t_start_epoch for aligning with tegrastats.
-
-Usage (single config):
-  python src/prediction_benchmark.py \
-      --packets   data/perception_bench.pkl \
-      --config    config/trajectory.yaml \
-      --checkpoint assets/Georgia-AM-NW.pt \
-      --n-workers 1 \
-      --n-runs    3 \
-      --out       bench_results.csv
-
-Usage (sweep):
-  python src/prediction_benchmark.py \
-      --packets   data/perception_bench.pkl \
-      --config    config/trajectory.yaml \
-      --checkpoint assets/Georgia-AM-NW.pt \
-      --sweep-workers 1 2 4 6 8 \
-      --n-runs    3 \
-      --out       bench_results.csv
-"""
-
 import os
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 os.environ.setdefault("TF_CPP_MIN_LOG_LEVEL", "3")

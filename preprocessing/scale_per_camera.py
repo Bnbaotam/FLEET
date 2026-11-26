@@ -1,23 +1,4 @@
 #!/usr/bin/env python3
-"""Data of Appendix A.4: the processed files of the 23-view setting with one scale factor per camera view.
-
-    python preprocessing/scale_per_camera.py --clients configs/clients_23.txt              # all 23 views
-    python preprocessing/scale_per_camera.py --clients configs/clients_23_chattanooga.txt  # the 10 distributed views
-
-Rule: k_i = sqrt((SD_i(vx)^2 + SD_i(vy)^2) / (SD_pool(vx)^2 + SD_pool(vy)^2)), with SD_i / SD_pool the population SDs (ddof 0) of the
-velocity rows (x and y) of camera i's / of all 23 cameras' pooled processed TRAINING files (the nodes of the scenes, not their rotated
-copies). configs/scale_per_camera_23.csv holds the factors (columns camera, sd_vx, sd_vy, sd_pool_vx, sd_pool_vy, k). Each output
-<camera>_{train,test}.pkl is a copy of the processed file in which only the velocity and acceleration stds (x and y) and the attention
-radius are multiplied by k_i; the means and the position stds stay. The model input of camera i is then that of its frame shrunk by
-k_i; the metric de-standardizes with the same constants, so errors stay in pixels. The scene graph uses the attention radius, so the
-neighbour radius of camera i becomes 15 k_i (15 units of the rescaled frame).
-
-Checks, before any file is written: for every camera of the clients file, SD_i(vx) and SD_i(vy) recomputed from its training file
-equal the table; when the clients file lists all cameras of the table, the recomputed pooled SDs and every recomputed k equal the
-table as well (the table is reproduced from the data). While writing: every input file carries the same standardization and the
-attention radius 15. The factors applied are those of the table, so the files of the distributed views can be built without the
-other views.
-"""
 from __future__ import annotations
 
 import argparse
@@ -78,7 +59,7 @@ def read_table(path: Path) -> pd.DataFrame:
 
 
 def check_table(processed_dir: Path, cameras: list[str], table: pd.DataFrame) -> None:
-    """The checks of the module docstring on the training files (raises on a mismatch)."""
+    """The checks of the factor table on the training files (raises on a mismatch)."""
     rows = {}
     for cam in cameras:
         rows[cam] = velocity_rows(read_env(processed_dir / f"{cam}_train.pkl"))
@@ -111,7 +92,7 @@ def scaled_env(env, k: float):
 
 
 def main() -> None:
-    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap = argparse.ArgumentParser()
     ap.add_argument("--processed_dir", type=Path, default=ROOT / "data" / "processed_23", help="processed files of the 23-view setting")
     ap.add_argument("--clients", type=Path, required=True, help="clients file: the cameras to scale")
     ap.add_argument("--table", type=Path, default=ROOT / "configs" / "scale_per_camera_23.csv")

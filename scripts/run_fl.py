@@ -1,25 +1,4 @@
 #!/usr/bin/env python3
-"""Run one federated experiment on this machine: 1 Flower server + one client process per intersection.
-
-    python scripts/run_fl.py --strategy fedrep --clients 06 --seed 1
-    python scripts/run_fl.py --strategy fedavg --clients 23 --seed 1 --port 8081 --gpu 1
-    python scripts/run_fl.py --strategy fedavg --clients 06 --seed 0 --rounds 2 --max_batches 2   # smoke test
-    python scripts/run_fl.py --strategy fedprox --clients 06 --seed 0 --val_frac 0.1 --fedprox_mu 0.001   # sweep point, tag fedprox-06c-val10-mu0.001
-    python scripts/run_fl.py --strategy fedrep --clients 23 --seed 1 --scaled   # Appendix A.4, tag fedrep-23c-scaled
-
---fedadam_eta / --fedadambn_eta / --fedprox_mu / --fedcross_alpha override the default value (strategies/keys.py SWEEP) and only
-go with their own --strategy; the tag gets the value only if it differs from the default. The value is recorded in run.json
-("hparams"). --data_dir (default data/processed_<NN>) holds <intersection>_{train,test}.pkl for every client; a missing file
-stops the launch before any process starts.
---scaled (Appendix A.4, fedavg or fedrep with --clients 23 only): one scale factor per camera, i.e. the default data folder is
-data/processed_23_scaled (built by preprocessing/scale_per_camera.py); tag <strategy>-23c-scaled, hparams "scaled": true. The
-workers run exactly as without the flag, on the other folder.
-
-The server writes metrics.csv and rounds.csv (every client's ADE/FDE per round) into runs/_staging/<name>/; each client
-writes final_model.pth and per_sample_final.csv into its own subfolder. On success the folder
-is registered with scripts/log_run.py and moved to runs/<run_id>/; on failure it stays in runs/_staging/.
-Seeds: server = seed, client i = 100 * seed + i.
-"""
 from __future__ import annotations
 
 import argparse
@@ -130,8 +109,7 @@ def finish(stage: Path, run_id: str, tag: str, seed: int, rounds: int, clients: 
 
 
 def add_data_dir_arg(ap: argparse.ArgumentParser) -> None:
-    ap.add_argument("--data_dir", type=Path, default=None, help="folder with <intersection>_{train,test}.pkl of every client "
-                    "(replaces the default folder named in the description)")
+    ap.add_argument("--data_dir", type=Path, default=None, help="folder with <intersection>_{train,test}.pkl of every client")
 
 
 def data_dir(a: argparse.Namespace, default: str) -> Path:
@@ -140,7 +118,7 @@ def data_dir(a: argparse.Namespace, default: str) -> Path:
 
 
 def parser() -> argparse.ArgumentParser:
-    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap = argparse.ArgumentParser()
     ap.add_argument("--strategy", required=True, choices=STRATEGIES)
     ap.add_argument("--clients", required=True, choices=["06", "23"])
     ap.add_argument("--seed", type=int, required=True)

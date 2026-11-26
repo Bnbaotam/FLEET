@@ -1,19 +1,4 @@
 #!/usr/bin/env python3
-"""
-prediction_processor.py
-
-Revised for camera / pixel-space input:
-- Rebuild FlowChain env directly inside this file.
-- Derive vx, vy from x, y history using derivative_of().
-- Divide pixel coordinates by cfg.DATA.SCALE before inference.
-- Multiply predictions back by scale for CSV / drawing.
-- Keep only latest-frame rows in the output packet.
-- Re-filter kept classes before prediction.
-
-Measurement-only additions for the Jetson AGX Thor runs (window-ready and prediction timestamps, drop and
-error counters, ready signal for a common start). The prediction path is unchanged.
-"""
-
 import os
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 os.environ.setdefault("TF_CPP_MIN_LOG_LEVEL", "3")

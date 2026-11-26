@@ -1,39 +1,4 @@
 #!/usr/bin/env python3
-"""Local-only baseline: every intersection trains its own model on its own train split, no communication.
-
-    python scripts/run_local.py --clients 06 --seed 1
-    python scripts/run_local.py --clients 06 --seed 1 --per_camera                       # each camera with its own constants
-    python scripts/run_local.py --clients 06 --seed 0 --rounds 2 --max_batches 2         # smoke test
-    python scripts/run_local.py --clients 06 --seed 1 --init_from <fedavg run id> --rounds 5   # global model + local fine-tuning
-    python scripts/run_local.py --clients 17 --seed 1 --init_from <fedrep run id> --rounds 0 --head Broad   # Appendix A.5, zero-shot
-
-One process per intersection (strategies/local.py), all on --gpu. "Round" r = 1 local epoch (the FedAvg client's
-fl_local_train) + test evaluation, so 20 rounds match FedAvg's compute. Same init as the FL runs (the server-built model),
-client i seeded 100 * seed + i. Output format = run_fl.py's (strategy "local", tag local-<NN>c[-r<rounds> if --rounds is not 20]),
-with only evaluate-phase rows; aggregate_time_s = 0 and phase_wall_s = max over sites of the round's wall time (train + eval).
-Data: data/processed_<NN>. --data_dir replaces the default folder of every mode (the modes below have their own); a missing file
-stops the launch before any process starts.
---per_camera: the data are data/processed_per_camera/ instead, where every camera is standardized with constants computed
-from its own training file (built by preprocessing/compute_standardization.py --per_camera and preprocessing/process_data.py);
-tag local-<NN>c[-r<rounds>]-pc, hparams {"per_camera": True, "data": <name of the data folder>}. Nothing else changes: the same
-workers, initialization, seeds and evaluation.
---init_from <run id>: every site starts from that FL run's final global model (the identical final_model.pth all its sites
-saved) instead of the shared random init; the run must be a finished run of fedavg, fedprox, fedadam or fedadambn on the same
-clients (a smoke run only if this run is a smoke run too); strategy "<strategy>ft", tag <strategy>ft-<NN>c,
-hparams {"init_from": run id}.
---clients 17 (Appendix A.5): the six-intersection models at the 17 camera views outside the federation (configs/clients_17.txt).
-Data: data/processed_17_unseen (built by preprocessing/unseen_views.py: the files of the 23-view setting with the constants of the
-six intersections). Needs --init_from <a finished six-intersection run (tag <src>-06c) of fedavg, fedrep or fedper> and --seed = the
-seed of that run (a smoke source run only if this run is a smoke run too):
-    --rounds 0: zero-shot, one test evaluation (round 0), no training, no final_model.pth. FedAvg applies its global model (strategy
-               fedavgzs, tag fedavgzs-17c); FedRep and FedPer need --head <a member intersection of clients_06> and apply the shared
-               encoder with that intersection's head, i.e. its final_model.pth as is (strategy <src>zs, tag <src>zs-17c-d<intersection>).
-    --rounds R: adaptation, R x (1 local epoch on the view's training split + test evaluation). FedAvg fine-tunes the whole global
-               model (strategy fedavgft, tag fedavgft-17c); FedRep and FedPer need --head mean --head_only and train a new head on the
-               frozen shared encoder, starting from the element-wise mean of the six trained heads (mean_head, saved as
-               init_head_mean.pth in the run folder; strategy <src>ad, tag <src>ad-17c).
-    hparams {"init_from", "mode": "zeroshot" | "adapt", "head": None | "mean" | <intersection>, "head_only", "data": <name of the data folder>}.
-"""
 from __future__ import annotations
 
 import argparse
@@ -125,7 +90,7 @@ def source_strategy(run_id: str, seed: int, smoke: bool) -> str:
 
 
 def unseen_strategy(a: argparse.Namespace, src: str) -> str:
-    """--clients 17: checks the flags against the source strategy (module docstring) and returns the run's strategy."""
+    """--clients 17: checks the flags against the source strategy and returns the run's strategy."""
     assert a.rounds >= 0, a.rounds
     assert (a.head is not None) == (src in HEADED), f"--head is required for a {HEADED} source and forbidden for {src}"
     assert a.head_only == (src in HEADED and a.rounds > 0), "--head_only goes with (and is required for) adapting a fedrep / fedper source"
@@ -195,7 +160,7 @@ def build_hint(a: argparse.Namespace) -> str:
 
 
 def parser() -> argparse.ArgumentParser:
-    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap = argparse.ArgumentParser()
     ap.add_argument("--clients", required=True, choices=["06", "17", "23"])
     ap.add_argument("--seed", type=int, required=True)
     ap.add_argument("--rounds", type=int, default=ROUNDS)

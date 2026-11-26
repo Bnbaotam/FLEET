@@ -1,5 +1,3 @@
-"""Comparison of two processed files (pickled Environments): used by tests/test_preprocessing.py to check that
-preprocessing/process_data.py rebuilds the distributed files."""
 import types
 
 import dill

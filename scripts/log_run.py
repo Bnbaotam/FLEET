@@ -1,17 +1,4 @@
 #!/usr/bin/env python3
-"""Record one experiment run: config, seed, git state, command, hyperparameters and metrics. Append-only.
-
-CLI:
-    python scripts/log_run.py --tag baseline --seed 0 --metrics '{"val_acc": 0.81}' [--config configs/base.yaml] [--note TEXT]
-    --metrics also accepts @path/to/metrics.json
-
-Python:
-    from log_run import log_run
-    run_id = log_run(tag="baseline", seed=0, metrics={"val_acc": 0.81}, config="configs/base.yaml")
-
-Every run gets runs/<run_id>/run.json (with a copy of the config) and one line in runs/index.jsonl. Outside a git work tree
-(or without git) the git fields are null.
-"""
 from __future__ import annotations
 
 import argparse
@@ -114,7 +101,7 @@ def log_run(*, tag: str, seed: int, metrics: dict, config: str | None = None, no
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap = argparse.ArgumentParser()
     ap.add_argument("--tag", required=True, help="experiment name, e.g. baseline, lr-sweep")
     ap.add_argument("--seed", type=int, required=True)
     ap.add_argument("--metrics", required=True, help="JSON object, or @file.json")

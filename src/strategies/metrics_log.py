@@ -1,14 +1,3 @@
-"""Server-side collector of per-client metrics: <run_dir>/metrics.csv (round x phase x split x intersection) and
-<run_dir>/rounds.csv (round x phase x split). Data never leaves the clients; they report ADE/FDE on their own test (and
-validation) windows in the Flower fit/evaluate metrics. Rows are appended and flushed every round.
-
-The fit phase (after local training) is evaluated on the test split only at the final round; fit rows of the other rounds
-exist (train_loss, train_time_s) but their evaluation cells (n_test_windows, eval_time_s, inference_time_s, ade/fde and the
-rounds.csv means) are empty. Evaluate-phase rows are complete in every round.
-
-Units: ade/fde are in pixels (client raw value * PIXELS_PER_UNIT). `n_test_windows` is the number of windows of the
-evaluated split (test, or val for split == "val"). Not-applicable cells (train_* in evaluate rows) are empty.
-"""
 import csv
 import math
 import os

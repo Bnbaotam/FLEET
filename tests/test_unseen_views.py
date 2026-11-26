@@ -1,6 +1,3 @@
-"""Appendix A.5 (camera views outside the federation), known input -> known output: the files of preprocessing/unseen_views.py for
-the distributed views, the mean head and the head-only training of run_local.py / strategies/local.py, the --clients 17 argument
-checks, tags and hparams, the source-run check, the missing-file stop, round 0 in merge_site_parts and the summarize columns."""
 import argparse
 import json
 import subprocess

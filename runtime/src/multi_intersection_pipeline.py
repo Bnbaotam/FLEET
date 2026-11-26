@@ -1,43 +1,4 @@
 #!/usr/bin/env python3
-"""
-multi_intersection_pipeline.py
-
-Runs N intersections (videos) SIMULTANEOUSLY, each as a fully independent
-pipeline instance. Measures per-module and end-to-end performance for each
-intersection, then prints a consolidated scaling report.
-
-Architecture (one instance per intersection, all running in parallel):
-
-  INT-0:  camera_process_video → q_phi_0 → feeder_0 → q_snap_0 → W0..Wk → q_pred_0 → saver_0
-  INT-1:  camera_process_video → q_phi_1 → feeder_1 → q_snap_1 → W0..Wk → q_pred_1 → saver_1
-  ...
-
-All pipelines start at the same time and are monitored together.
-The script exits once ALL intersections finish.
-
-Measured modules (per intersection):
-  1. Camera Perception   – avg FPS, mean detection latency
-  2. Trajectory Prediction – avg FPS
-  3. Saver               – avg FPS, queue-receive latency
-  4. End-to-End          – cam_emit → saver_recv (mean / p50 / p95)
-
-Usage:
-  python multi_intersection_pipeline.py \
-    --videos  v0.mp4 v1.mp4 v2.mp4 \
-    --names   "INT-A" "INT-B" "INT-C" \
-    --yolo-model yolov8n.pt \
-    --config  flowchain.yaml \
-    --checkpoint flowchain.ckpt \
-    --out     results/ \
-    [--workers 4] [--target-fps 10] [--save-csv-only]
-
-Measurement-only additions for the Jetson AGX Thor runs. New options (defaults keep the original behaviour):
-  --pace original|arrival|none, --tracker, --start-s, --duration-s, --sync-start.
-Per intersection it also writes frames.csv (one row per forecast frame, all time stamps),
-camera_frames.csv, camera.json, feeder.json, worker<k>.json and saver.json; per run run_config.json
-and run_meta.json. With --sync-start the run fails (exit code 1) if any process fails.
-"""
-
 import os
 os.environ.setdefault("TF_CPP_MIN_LOG_LEVEL", "3")
 os.environ.setdefault("ABSL_LOGGING_STDERR_THRESHOLD", "3")

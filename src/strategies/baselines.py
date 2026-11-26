@@ -1,8 +1,3 @@
-"""Shared pieces of the two non-federated baselines (workers: strategies/local.py, strategies/central.py).
-
-Both start from the parameters the FL server hands out in round 1 and train with the FL client's own path
-(TrajectoryClient.local_train / local_eval, i.e. fl_local_train, 1 epoch per "round"), so only the data flow differs.
-"""
 import json
 from pathlib import Path
 from types import SimpleNamespace

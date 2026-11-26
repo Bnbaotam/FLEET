@@ -1,21 +1,4 @@
 #!/usr/bin/env python3
-"""Step 2 of the data preparation: the standardization constants (mean, SD) that step 3 (process_data.py) stores in the files.
-
-    python preprocessing/compute_standardization.py --raw_dir data/raw_trajectories --clients configs/clients_06.txt \
-        --out configs/standardization_06.json
-    python preprocessing/compute_standardization.py --raw_dir data/raw_trajectories --clients configs/clients_06.txt \
-        --per_camera --out configs/standardization_per_camera.json
-
-Inputs: the TRAINING raw trajectory files <raw_dir>/<camera>_train.pkl of the cameras of the clients file (the test files are
-not read).
-Rule: over every node row of these files, built as process_data.py builds the nodes (tracks with consecutive frames and more
-than one row; positions = pixels / 50), the mean and the population SD (ddof 0) of position, velocity and acceleration in x
-and y, with velocity = np.gradient(position, 0.1) and acceleration = np.gradient(velocity, 0.1) per node; a negative mean is
-set to 0; every value is rounded to 6 decimals. Pooled (default): one set of constants over all listed cameras.
---per_camera: one set per camera, each from that camera's own training file.
-Output (JSON): pooled {"cameras": [...], "n_rows": N, "standardization": {"position": {"x": {"mean": .., "std": ..}, "y": ..},
-"velocity": .., "acceleration": ..}}; per camera {"per_camera": {"<camera>": {"n_rows": N, "standardization": {...}}, ...}}.
-"""
 from __future__ import annotations
 
 import argparse
@@ -29,7 +12,7 @@ from process_data import NODE, STATES, clients_file, process_file, read_raw
 
 
 def pooled_constants(envs: list) -> pd.DataFrame:
-    """The rule of the module docstring over every node row of envs: one row per state (entity, dim) with the raw mean / SD and the
+    """The standardization constants over every node row of envs: one row per state (entity, dim) with the raw mean / SD and the
     stored values (negative mean -> 0, rounded to 6 decimals)."""
     cols = {s: [] for s in STATES}
     for env in envs:
@@ -70,7 +53,7 @@ def constants(raw_dir: Path, cameras: list[str]) -> dict:
 
 
 def main() -> None:
-    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap = argparse.ArgumentParser()
     ap.add_argument("--raw_dir", type=Path, required=True, help="folder with <camera>_train.pkl of step 1")
     ap.add_argument("--clients", type=Path, required=True, help="clients file: the cameras whose training files are used")
     ap.add_argument("--out", type=Path, required=True, help="JSON file to write")

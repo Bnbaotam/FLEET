@@ -1,13 +1,3 @@
-"""Centralized baseline worker: one model trained on the pooled train splits of every intersection (not federated).
-Started by scripts/run_central.py.
-
-Initialization = the FL server's model (fl_initial_state with the run seed); training RNG seed = 100 * seed (that of client 0).
-Pooled train set = ConcatDataset of every site's train dataset, shuffled, batch size / drop_last / collate as the train loaders.
-Per epoch: fl_local_train for 1 epoch (same path and fresh outer Adam as a FedAvg round). Every `eval_every` epochs and at the
-last one, the single model is evaluated on every site's test split (the cost of one evaluation is that of all sites, hence not
-every epoch) and one "evaluate" row per site goes through RoundLogger. The last epoch writes, for every site, per_sample_final.csv
-and a copy of the one final_model.pth in <run_dir>/<site>/.
-"""
 import argparse
 import time
 from pathlib import Path
@@ -25,7 +15,7 @@ from utils import load_config, seed_everything
 
 
 def main():
-    ap = argparse.ArgumentParser(description=__doc__)
+    ap = argparse.ArgumentParser()
     ap.add_argument("--config_file", required=True)
     ap.add_argument("--data_dir", required=True)
     ap.add_argument("--output_dir", required=True, help="logs only; per-site outputs go to <run_dir>/<site>/")

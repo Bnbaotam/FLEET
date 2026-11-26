@@ -1,12 +1,4 @@
 #!/usr/bin/env python3
-"""Concatenate the server-written metrics.csv / rounds.csv of every run in runs/index.jsonl.
-
-    python scripts/collect.py [--include_smoke] [--out data/derived]
-
-Writes <out>/all_runs.csv (one row per run x round x phase x split x intersection) and <out>/all_rounds.csv, with the
-columns tag and git_commit from the index added. Runs tagged smoke-* are skipped unless --include_smoke; a listed run
-without metrics.csv or rounds.csv is an error.
-"""
 from __future__ import annotations
 
 import argparse
@@ -44,7 +36,7 @@ def collect(runs_dir: Path, out_dir: Path, include_smoke: bool) -> tuple[pd.Data
 
 
 def main() -> None:
-    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap = argparse.ArgumentParser()
     ap.add_argument("--include_smoke", action="store_true")
     ap.add_argument("--out", type=Path, default=ROOT / "data" / "derived")
     a = ap.parse_args()

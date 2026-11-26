@@ -1,16 +1,3 @@
-"""Flower server for all strategies; started by scripts/run_fl.py.
-
-Fixed hyperparameters are those of the original implementation (FEDADAM, FEDCROSS below); the swept ones are in
-strategies/keys.py. The original FedRep and FedPer servers were custom strategies that compute a sample-weighted average
-of whatever the clients send, i.e. FedAvg aggregation over the shared keys only, so they use FedAvg here.
-
-fedadambn: FedAdam whose server Adam step moves the trainable parameters only, while the buffers take the FedAvg average
-(FedAdamBN below); this is the FedAdam variant whose results the paper reports. fedadam: Flower's stock FedAdam, which also
-Adam-steps the BatchNorm running statistics (used by the flow in eval mode) and can drive running_var negative.
-
-Every strategy starts from server-built initial parameters (seeded). In the original implementation FedAvg, FedProx and
-FedRep took the initial parameters from one randomly chosen client.
-"""
 import argparse
 import time
 from datetime import timedelta
@@ -113,7 +100,7 @@ def build_strategy(name: str, model, num_clients: int, num_rounds: int, logger: 
 
 
 def main():
-    ap = argparse.ArgumentParser(description=__doc__)
+    ap = argparse.ArgumentParser()
     ap.add_argument("--strategy", required=True, choices=STRATEGIES)
     ap.add_argument("--config_file", required=True)
     ap.add_argument("--intersection", required=True, help="any client; only used to build the model for its shapes")

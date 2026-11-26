@@ -1,17 +1,4 @@
 #!/usr/bin/env python3
-"""Data of Appendix A.5: the camera views outside the six-intersection federation, seen through the federation's constants.
-
-    python preprocessing/unseen_views.py                                              # the 17 views of configs/clients_17.txt
-    python preprocessing/unseen_views.py --clients configs/clients_17_chattanooga.txt  # the 4 distributed views
-
-A six-intersection model standardizes its inputs, and the metric de-standardizes its outputs, with the constants stored in the files
-it reads; at its six intersections these are the constants of data/processed_06. Rule: each output <view>_{train,test}.pkl is a copy
-of the processed file of the 23-view setting (data/processed_23) in which only the standardization is replaced by the constants of
-data/processed_06, so a six-intersection model sees the new view through the constants it was trained with and errors stay in pixels.
-
-Checks: all files of --constants_dir carry one identical standardization and attention radius; none of them belongs to a view of the
-clients file; every input file has that attention radius and a standardization different from these constants.
-"""
 from __future__ import annotations
 
 import argparse
@@ -45,7 +32,7 @@ def unseen_env(env, st: dict, radius: dict):
 
 
 def main() -> None:
-    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap = argparse.ArgumentParser()
     ap.add_argument("--processed_dir", type=Path, default=ROOT / "data" / "processed_23", help="processed files of the 23-view setting")
     ap.add_argument("--constants_dir", type=Path, default=ROOT / "data" / "processed_06", help="processed files of the federation")
     ap.add_argument("--clients", type=Path, default=ROOT / "configs" / "clients_17.txt", help="clients file: the views to write")

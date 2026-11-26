@@ -1,8 +1,3 @@
-"""FedCross (Hu et al., 2024) strategy for FlowChain.
-
-Ported verbatim from the original FedCross server for FlowChain (per-client print statements removed; per-client
-metrics are collected by the server.py logging wrapper). Clients evaluate the GLOBAL model each round.
-"""
 from collections import OrderedDict
 from typing import Dict, List, Tuple, Optional
 

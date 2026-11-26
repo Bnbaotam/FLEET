@@ -1,23 +1,4 @@
 #!/usr/bin/env python3
-"""
-generate_perception.py — Synthesise fake camera packets and save to pickle + CSV.
-
-Output matches the camera_processor.py packet format (without its "meas" time stamps):
-  Pickle: list of dicts  {"frame_bgr": np.ndarray, "perception_df": pd.DataFrame,
-                           "frame_idx": int, "cam_t_emit": float}
-  CSV:    one row per detection, matching make_df_from_results() output columns:
-          frame, trackId, x, y, bbox, cls_name, sceneId, metaId
-
-Usage:
-  python generate_perception.py \
-      --n-objects 10     \
-      --n-frames  300    \
-      --fps       10.0   \
-      --scene-id  Georgie_NW \
-      --out-pkl   data/perception_bench.pkl \
-      --out-csv   data/perception_bench.csv
-"""
-
 import argparse
 import json
 import os

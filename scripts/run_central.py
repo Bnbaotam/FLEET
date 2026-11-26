@@ -1,17 +1,4 @@
 #!/usr/bin/env python3
-"""Centralized baseline: one model trained on the pooled train splits of all intersections (not federated).
-
-    python scripts/run_central.py --clients 06 --seed 1
-    python scripts/run_central.py --clients 06 --seed 0 --rounds 2 --max_batches 2 --eval_every 1   # smoke test
-
-One process (strategies/central.py) on --gpu. "Round" = 1 epoch over the pooled set (batch 128, shuffled, drop_last) with
-fl_local_train, so --rounds 20 matches FedAvg's compute. Same init as the FL runs. The model is evaluated on every site's test
-split every --eval_every epochs and at the last epoch (evaluating all sites is expensive), so metrics.csv / rounds.csv have only
-those rounds; the final one is --rounds. Output format = run_fl.py's (strategy "central", tag central-<NN>c); every site folder
-holds a copy of the one final_model.pth and its own per_sample_final.csv. phase_wall_s = that epoch's training + all-site
-evaluation wall time; aggregate_time_s = 0. run.json's note records the pooled number of train windows.
---data_dir as in run_fl.py (default data/processed_<NN>).
-"""
 from __future__ import annotations
 
 import argparse
@@ -29,7 +16,7 @@ from summarize import read_clients  # noqa: E402
 
 
 def parser() -> argparse.ArgumentParser:
-    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap = argparse.ArgumentParser()
     ap.add_argument("--clients", required=True, choices=["06", "23"])
     ap.add_argument("--seed", type=int, required=True)
     ap.add_argument("--rounds", type=int, default=20, help="epochs over the pooled set")

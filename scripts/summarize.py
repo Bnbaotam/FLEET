@@ -1,35 +1,4 @@
 #!/usr/bin/env python3
-"""Turn runs into the paper's Table 2 / Table 4 format, from the server-written metrics (see scripts/collect.py).
-
-All numbers are in pixels. ade/fde are best-of-20 and corrected; --legacy uses ade_legacy/fde_legacy (the original
-evaluation code's metric). Per run and intersection one value is selected from the rounds of one phase and split (--select):
-  final      : round = num_rounds (default; no test-set model selection; the last round is always evaluated)
-  best       : lowest ADE and, independently, lowest FDE over the rounds (selects on the test set)
-  same_round : the round of the lowest ADE, with that round's FDE (the chosen rounds are printed)
---phase evaluate (default) is the model the client holds after receiving the server's update, fit the model right after
-local training (evaluated at the final round only, so with fit every --select gives the final round). --split test (default) or val (runs made with --val_frac only).
-Across runs (seeds): mean ± std (ddof=1; "(n=1)" for a single run) per intersection; Average = per-run unweighted mean
-over intersections, then mean ± std over runs; Wins = intersections where the strategy has the lowest mean.
-
-CLI:
-    python scripts/summarize.py --clients 06 [--phase evaluate] [--split test] [--select final] [--legacy] [--strategies fedavg fedrep ...]
-Strategies (table columns): the federated ones, fedavgft (FedAvg + local fine-tuning, run_local.py --init_from), and the
-non-federated baselines "local" (run_local.py), "local-pc" (Local (per-camera): run_local.py --per_camera, each camera
-standardized with its own constants) and "central" (run_central.py); central evaluates only every few epochs, so best /
-same_round select among fewer rounds for it than for the others. --clients 23 also shows "fedavg-scaled" / "fedrep-scaled"
-(Appendix A.4: run_fl.py --scaled, one scale factor per camera). --clients 17 (Appendix A.5: the six-intersection models at the
-17 views outside the federation, run_local.py --clients 17) shows the zero-shot runs "fedavgzs" (FedAvg's global model) and
-"fedrepzs-d<intersection>" / "fedperzs-d<intersection>" (the shared encoder with the head of that member intersection, one
-column per donor head), and the adapted models "fedavgft" (whole model fine-tuned), "fedrepad" / "fedperad" (new head on the frozen
-encoder, from the mean of the six heads). Zero-shot runs have the single round 0; the runs of one strategy must have the same
-number of rounds.
-Uses every run in runs/index.jsonl whose tag is "<strategy>-<NN>c", a tuned "<strategy>-<NN>c-<hp><value>", a local run with
-a non-default number of epochs "local-<NN>c-r<epochs>" (reported as its own strategy "local-r<epochs>"), a per-camera local
-run "local-<NN>c[-r<epochs>]-pc" (reported as "local[-r<epochs>]-pc"), a scaled run "<fedavg|fedrep>-23c-scaled" (reported as
-"<strategy>-scaled") or a zero-shot run with a donor head "<fedrepzs|fedperzs>-17c-d<intersection>" (reported as
-"<strategy>-d<intersection>"); one configuration per strategy. The runs are re-collected into data/derived/ on every call, or
---input reads a CSV written by collect.py; --include_smoke also uses smoke-<strategy>-<NN>c runs.
-"""
 from __future__ import annotations
 
 import argparse
@@ -141,7 +110,7 @@ def table(df: pd.DataFrame, nn: str, clients: list[str], phase: str, split: str,
 
 
 def main() -> None:
-    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap = argparse.ArgumentParser()
     ap.add_argument("--clients", required=True, choices=["06", "17", "23"])
     ap.add_argument("--phase", default="evaluate", choices=["evaluate", "fit"])
     ap.add_argument("--split", default="test", choices=["test", "val"])

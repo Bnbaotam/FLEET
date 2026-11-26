@@ -1,21 +1,4 @@
 #!/usr/bin/env python3
-"""
-camera_processor.py
-
-Emits packets to cam_queue:
-  "perception_df" : pd.DataFrame | None   (ONLY classes 0,1,2,3,5,7)
-  "frame_idx"     : int
-  "cam_t_emit"    : float
-  "frame_bgr"     : np.ndarray            (ONLY when save_frames=True)
-
-Filtered COCO classes kept:
-  0 person | 1 bicycle | 2 car | 3 motorcycle | 5 bus | 7 truck
-All other detections are silently dropped before the packet is emitted.
-
-Measurement-only additions for the Jetson AGX Thor runs (see the docstring of camera_process_video).
-Defaults keep the original behaviour.
-"""
-
 import os
 os.environ.setdefault("TF_CPP_MIN_LOG_LEVEL", "3")
 os.environ.setdefault("ABSL_LOGGING_STDERR_THRESHOLD", "3")

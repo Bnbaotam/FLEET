@@ -1,4 +1,3 @@
-"""Which FlowChain state-dict entries each strategy exchanges with the server, and the hyperparameter swept per strategy."""
 import argparse
 from typing import List, Optional
 import torch

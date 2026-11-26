@@ -1,6 +1,3 @@
-"""Unit tests for the FedProx proximal hooks (strategies.client.FedProxClient.local_train) and FedCross similarity / cross-aggregation
-(strategies.fedcross.FedCrossStrategy). They run the real methods; only the training loop (fl_local_train) is replaced by a tiny loop,
-so the gradients, similarities and cross-aggregated models can be checked against hand-computed values."""
 import sys
 from pathlib import Path
 from types import SimpleNamespace

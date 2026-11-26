@@ -1,6 +1,3 @@
-"""Unit tests of the launchers' options: sweep flags and run tags (run_fl.py), the server's hyperparameters, the missing-file check
-that stops a launch, and the local-only / fine-tuning options of run_local.py (tags, hparams, the global-model check and the
-source-run check)."""
 import json
 import sys
 from argparse import Namespace

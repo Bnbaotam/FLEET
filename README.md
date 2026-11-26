@@ -62,7 +62,7 @@ python preprocessing/preprocess_tracks.py --data <tracker output>.txt \
 What it does, in this order:
 
 1. Takes the centre of each box as the position of the object.
-2. Marks a track as stationary if it moves less than 10 pixels between its first and its last frame.
+2. Marks a track as stationary if it moves less than 20 pixels between its first and its last frame.
 3. Fills missing frames inside a track by linear interpolation.
 4. Cuts stationary tracks to their first 20 frames.
 5. Removes tracks shorter than 20 frames.

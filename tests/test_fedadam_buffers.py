@@ -1,4 +1,3 @@
-"""Unit tests for strategies.server.FedAdamBN (strategy fedadambn): buffers take the FedAvg average, parameters the stock FedAdam step."""
 import sys
 from pathlib import Path
 

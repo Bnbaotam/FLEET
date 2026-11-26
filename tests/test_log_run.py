@@ -1,4 +1,3 @@
-"""log_run records the git state it is given (taken at run start), and works outside a git repository (git fields null)."""
 import json
 import shutil
 import subprocess

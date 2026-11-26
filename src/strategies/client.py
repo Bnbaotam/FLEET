@@ -1,12 +1,3 @@
-"""Flower client for one intersection. One process per intersection; started by scripts/run_fl.py.
-
-Behaviour is ported from the original implementation and kept numerically identical:
-  fedavg / fedadam / fedadambn / fedcross : TrajectoryClient (full-model exchange, one local epoch per round)
-  fedprox                                 : FedProxClient (proximal term added to every local gradient)
-  fedrep                                  : FedRepClient (encoder exchanged; per round one head epoch, then one encoder epoch)
-  fedper                                  : FedPerClient (FedAvg client over encoder.*, joint training of encoder and head; the
-                                            original implementation trained head and encoder in alternating epochs)
-"""
 import argparse
 import os
 import time
@@ -181,7 +172,7 @@ assert set(CLIENTS) == set(STRATEGIES)
 
 
 def main():
-    ap = argparse.ArgumentParser(description=__doc__)
+    ap = argparse.ArgumentParser()
     ap.add_argument("--strategy", required=True, choices=STRATEGIES)
     ap.add_argument("--config_file", required=True)
     ap.add_argument("--intersection", required=True)

@@ -1,22 +1,4 @@
 #!/usr/bin/env python3
-"""Step 3 of the data preparation: raw trajectory files + standardization constants -> the processed files that training reads.
-
-    python preprocessing/process_data.py --raw_dir data/raw_trajectories --clients configs/clients_06.txt \
-        --standardization configs/standardization_06.json --out_dir data/processed_06
-
-Inputs: <raw_dir>/<camera>_{train,test}.pkl (step 1, preprocess_tracks.py) for every camera of the clients file, and a JSON
-file of compute_standardization.py (step 2): pooled constants ({"standardization": ...}) go into every file; per-camera
-constants ({"per_camera": {camera: {"standardization": ...}}}) give every camera its own, carried by both of its files.
-Outputs: <out_dir>/<camera>_{train,test}.pkl, one pickled Environment (FlowChain / Trajectron++ data structure) per file,
-written with dill.dump(env, f, protocol=dill.HIGHEST_PROTOCOL).
-
-Rule (process_file, unchanged from the processing of the paper): per sceneId one Scene (dt = 0.1 s, timesteps = last frame + 1);
-positions = pixels / 50; one PEDESTRIAN node per track with more than one row and consecutive frames (other tracks are skipped
-with a warning), first_timestep = its first frame, velocity and acceleration by derivative_of; attention radius 15; every
-training scene gets 24 rotated copies (0, 15, ..., 345 degrees) for augmentation. np.random.seed(123) at start.
-Run it as a script: the training scenes' aug_func (augment below) is pickled by value from __main__, as the training code
-expects. The classes are imported as data.TP.environment.* with src/ on sys.path, the module path the pickles reference.
-"""
 from __future__ import annotations
 
 import argparse
@@ -199,7 +181,7 @@ def camera_standardization(constants: dict, cameras: list[str]) -> dict:
 
 
 def main() -> None:
-    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap = argparse.ArgumentParser()
     ap.add_argument("--raw_dir", type=Path, required=True, help="folder with <camera>_{train,test}.pkl of step 1")
     ap.add_argument("--clients", type=Path, required=True, help="clients file: the cameras to process")
     ap.add_argument("--standardization", type=Path, required=True, help="JSON of compute_standardization.py")

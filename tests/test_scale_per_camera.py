@@ -1,6 +1,3 @@
-"""Appendix A.4 (one scale factor per camera), known input -> known output: the factor and the tracked table, the check of the
-table against the training files (preprocessing/scale_per_camera.py), the scaled files of the distributed views, their test windows
-and the pixel invariance of the metric, run_fl.py --scaled and the separate summarize columns of the scaled runs."""
 import subprocess
 import sys
 from pathlib import Path

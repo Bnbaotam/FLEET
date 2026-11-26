@@ -1,5 +1,3 @@
-"""Unit tests (known input -> known output) for the reporting path: server-side CSV logging, per-sample errors,
-collect.py / summarize.py selection and statistics, and the opt-in validation carve."""
 import json
 import sys
 from pathlib import Path

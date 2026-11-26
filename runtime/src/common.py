@@ -1,21 +1,4 @@
 #!/usr/bin/env python3
-"""
-common.py — Shared utilities of the pipeline processes (perception packets and drawing helpers).
-
-Changes vs. original
-─────────────────────
-1. Heavy model imports (YOLO, Build_Model, Build_Metrics, DataLoader) are now
-   lazy — loaded only inside the functions that actually need them.
-   → camera subprocess no longer pays the cost of loading torch models it never uses.
-
-2. Duplicate `data_columns` definition removed (was defined twice).
-
-3. make_df_from_results() accepts an optional `scene_id` argument
-   (default="Georgie_NW" for backward compatibility).
-
-All function signatures and logic are otherwise unchanged.
-"""
-
 import os
 import time
 import cv2

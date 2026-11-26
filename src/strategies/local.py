@@ -1,18 +1,3 @@
-"""Local-only baseline worker: one intersection, trained on its own train split only, no communication.
-Started by scripts/run_local.py (one process per intersection).
-
-Initialization = the FL server's model (strategies.baselines.fl_initial_state with the run seed); the RNG is then
-re-seeded with the FL client's seed (100 * seed + i) before the client is built, exactly as strategies/client.py does.
-Per round: 1 local epoch (fl_local_train, same as a FedAvg round), then the test evaluation; one row per round goes to
-<output_dir>/rounds_part.jsonl. The final round also writes final_model.pth and per_sample_final.csv.
---init_model PATH (global model + local fine-tuning, run_local.py --init_from) replaces the FL server's init by that
-state dict, e.g. python scripts/run_local.py --clients 06 --seed 0 --init_from <fedavg run id> --rounds 5
-Options for the views outside the federation (Appendix A.5, scripts/run_local.py --clients 17):
---rounds 0 (zero-shot evaluation): one test evaluation of --init_model, logged as round 0, with per_sample_final.csv; no training, no
-final_model.pth.
---head_only fedrep|fedper (head-only adaptation): every local epoch trains the head only, i.e. that strategy's shared (exchanged) keys are frozen
-as in FedRepClient's head phase (strategies.client.train_only); after every epoch they are asserted bit-identical to the init.
-"""
 import argparse
 import json
 import os
@@ -48,7 +33,7 @@ def train_head_only(client: TrajectoryClient, frozen: dict) -> float:
 
 
 def main():
-    ap = argparse.ArgumentParser(description=__doc__)
+    ap = argparse.ArgumentParser()
     ap.add_argument("--config_file", required=True)
     ap.add_argument("--data_dir", required=True)
     ap.add_argument("--output_dir", required=True)

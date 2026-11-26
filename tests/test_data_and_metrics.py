@@ -1,5 +1,3 @@
-"""Unit tests for the data loader and the ADE/FDE metric (known input -> known output). The metric tests on tensors need CUDA
-and are skipped without it."""
 import hashlib
 import sys
 from pathlib import Path

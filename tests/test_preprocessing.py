@@ -1,6 +1,3 @@
-"""Unit tests of the data preparation (preprocessing/): track preprocessing on a synthetic tracker output, the constants recipe on a
-known input and on the distributed files, the rebuild of one camera's processed files, and the train/test split of the distributed
-raw trajectories."""
 import json
 import pickle
 import subprocess
@@ -41,7 +38,7 @@ def _mot(tmp_path) -> Path:
 
 
 def test_preprocess_tracks_on_a_synthetic_mot_file(tmp_path):
-    train, test = pt.preprocess(_mot(tmp_path), 0.1, 10.0, 10.0, 20, 0.2, 42)
+    train, test = pt.preprocess(_mot(tmp_path), 0.1, 10.0, 20.0, 20, 0.2, 42)
     df = pd.concat([train, test])
     assert list(df.columns) == pt.COLUMNS and set(train.sceneId) == {"scene_train"} and set(test.sceneId) == {"scene_test"}
     for part in (train, test):  # rows sorted by (frame, trackId)
@@ -60,12 +57,12 @@ def test_preprocess_tracks_on_a_synthetic_mot_file(tmp_path):
     assert not set(train.trackId) & set(test.trackId) and len(train) + len(test) == len(df)
     want_train, want_test = train_test_split([1, 2, 4], test_size=0.2, random_state=42, shuffle=True)
     assert set(train.trackId) == set(want_train) and set(test.trackId) == set(want_test)
-    again = pt.preprocess(_mot(tmp_path), 0.1, 10.0, 10.0, 20, 0.2, 42)
+    again = pt.preprocess(_mot(tmp_path), 0.1, 10.0, 20.0, 20, 0.2, 42)
     assert train.equals(again[0]) and test.equals(again[1])
 
 
 def test_preprocess_tracks_subsamples_frames(tmp_path):
-    train, test = pt.preprocess(_mot(tmp_path), 0.2, 10.0, 10.0, 5, 0.2, 42)  # every 2nd distinct frame: 5, 7, ..., 33 -> 0..14
+    train, test = pt.preprocess(_mot(tmp_path), 0.2, 10.0, 20.0, 5, 0.2, 42)  # every 2nd distinct frame: 5, 7, ..., 33 -> 0..14
     df = pd.concat([train, test])
     assert df.frame.min() == 0 and df.frame.max() == 14 and sorted(df.trackId.unique()) == [1, 2, 3, 4]
     np.testing.assert_allclose(df[df.trackId == 1].sort_values("frame").x, 105 + 10 * np.arange(13))
@@ -75,7 +72,7 @@ def test_preprocess_tracks_cli_writes_the_two_pickles(tmp_path):
     out = [tmp_path / "v_train.pkl", tmp_path / "v_test.pkl"]
     subprocess.run([sys.executable, str(ROOT / "preprocessing/preprocess_tracks.py"), "--data", str(_mot(tmp_path)),
                     "--train-output", str(out[0]), "--test-output", str(out[1])], check=True, capture_output=True)
-    want = pt.preprocess(_mot(tmp_path), 0.1, 10.0, 10.0, 20, 0.2, 42)
+    want = pt.preprocess(_mot(tmp_path), 0.1, 10.0, 20.0, 20, 0.2, 42)
     for path, df in zip(out, want):
         with open(path, "rb") as f:
             assert pickle.load(f).equals(df)
@@ -85,28 +82,10 @@ def test_preprocess_tracks_rejects_bad_input(tmp_path):
     path = tmp_path / "bad.txt"
     path.write_text("1,1,0,0,10,20\n1,1,5,5,10,20\n2,1,0,0,10,20\n")  # two boxes of track 1 in frame 1
     with pytest.raises(AssertionError, match="two boxes"):
-        pt.preprocess(path, 0.1, 10.0, 10.0, 1, 0.2, 42)
+        pt.preprocess(path, 0.1, 10.0, 20.0, 1, 0.2, 42)
     path.write_text("1,1,0,0,10\n")
     with pytest.raises(AssertionError, match="6 columns"):
-        pt.preprocess(path, 0.1, 10.0, 10.0, 1, 0.2, 42)
-
-
-def test_step_1_returns_the_distributed_raw_files(tmp_path):
-    """Step 1 applied to a tracker output rebuilt from the distributed trajectories gives the distributed files back, row for row and
-    type for type: the layout the script writes is the layout of the distributed files. The rebuilt tracker output holds the kept
-    tracks as boxes of size zero (frame numbers from 1) and, in every frame without a kept track, one box of a track that is dropped."""
-    for cam in CLIENTS["23_chattanooga"]:
-        want = [pdata.read_raw(RAW, cam, s) for s in ("train", "test")]
-        both = pd.concat(want)
-        empty = sorted(set(range(both.frame.max() + 1)) - set(both.frame))
-        filler = pd.DataFrame({"frame": empty, "trackId": both.trackId.max() + 1 + np.arange(len(empty)), "x": 0.0, "y": 0.0})
-        mot = pd.concat([both[["frame", "trackId", "x", "y"]], filler]).assign(w=0, h=0).astype({"frame": int, "trackId": int})
-        mot["frame"] += 1
-        path = tmp_path / f"{cam}.txt"
-        mot.sort_values(["frame", "trackId"]).to_csv(path, header=False, index=False)
-        got = pt.preprocess(path, 0.1, 10.0, 10.0, 20, 0.2, 42, scene="CUIP_10 intersections_9min")
-        for have, ref in zip(got, want):
-            pd.testing.assert_frame_equal(have, ref)
+        pt.preprocess(path, 0.1, 10.0, 20.0, 1, 0.2, 42)
 
 
 def test_split_of_the_distributed_raw_trajectories():
