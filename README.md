@@ -1,218 +1,113 @@
 # FLEET
 
-Code and data for the paper *FLEET: Federated Learning for Edge-Deployable End-to-End Trajectory Forecasting at Urban Intersections*.
-
-This repository holds what is needed to go from the output of the perception module to the forecasting results of the paper:
+Federated learning for trajectory forecasting at urban intersections. FLEET trains a FlowChain forecasting model across many traffic cameras with Flower, without pooling their data, and covers the path from tracker output to trained models and error tables.
 
 | Folder | Content |
 |---|---|
-| `data/` | Trajectory data of the Chattanooga camera views: the raw trajectory files and the processed files that training reads |
-| `preprocessing/` | The three data-preparation steps (track preprocessing, standardization constants, processed files) and the data scripts of the two appendix experiments |
-| `configs/` | Model configuration, the client lists, the standardization constants, and the scale factors of Appendix A.4 |
-| `src/` | The FlowChain forecasting model, data loading, metrics, and the federated learning strategies |
-| `scripts/` | Launchers for federated training and the baselines, and the scripts that summarize the results |
-| `tests/` | Unit tests of the data preparation, the data loader, the metrics and the strategies |
-| `runtime/` | The two runtime experiments on the edge device: parallel trajectory prediction and concurrent intersection pipelines, with the generator of the synthetic perception data (see `runtime/README.md`) |
+| `preprocessing/` | Data preparation, from tracker output to the files that training reads |
+| `src/` | The forecasting model, data loading, metrics and the federated strategies |
+| `scripts/` | Launchers for federated training and the baselines, and the result summaries |
+| `configs/` | Model configuration, client lists and standardization constants |
+| `data/` | Trajectory data of 10 camera views, ready for training (see `data/README.md`) |
+| `runtime/` | Runtime benchmarks of the prediction stage and of the full pipeline (see `runtime/README.md`) |
+| `tests/` | Unit tests |
 
-The paper evaluates two settings. Both use the same code and differ only in the client list:
+The data files are Python pickles. Load pickles only from sources you trust.
 
-- **Six intersections** (`--clients 06`): six Chattanooga intersections, one client each.
-- **23 camera views** (`--clients 23`): 10 Chattanooga views, 11 CityFlow views and 2 TUMTraf views.
+## Quick start
 
-## The process in five steps
-
-```
-perception output          one text file per camera, written by the detector and tracker (YOLO26 + ByteTrack)
-      |  step 1: preprocess the tracks
-raw trajectory files       data/raw_trajectories/<camera>_{train,test}.pkl
-      |  step 2: compute the standardization constants
-constants                  configs/standardization_<NN>.json
-      |  step 3: process the data
-processed files            data/processed_<NN>/<camera>_{train,test}.pkl
-      |  step 4: train (federated strategies and baselines)
-runs                       runs/<run id>/
-      |  step 5: summarize
-tables                     mean ± standard deviation over the seeds, per camera
-```
-
-The repository already contains the outputs of steps 1 to 3 for the Chattanooga views, so you can start at step 4. Steps 1 to 3 are documented so that the files can be rebuilt, and so that the same pipeline can be applied to other cameras.
-
-## Setup
-
-Python 3.10 and one CUDA GPU are required (the model is built on the GPU).
+Python 3.10 and one CUDA GPU are required.
 
 ```bash
-pip install -r requirements.txt        # environment/requirements.lock.txt is the full list of the versions we used
-pytest tests                           # optional: unit tests (a few need the GPU and are skipped without one)
+pip install -r requirements.txt        # exact versions: environment/requirements.lock.txt
+pytest tests                           # optional: unit tests
+python scripts/run_fl.py --strategy fedavg --clients 06 --seed 1 --rounds 2 --max_batches 2   # short test run, a few minutes
 ```
 
-All commands below are run from the repository root.
+All commands are run from the repository root. Every script lists its options with `--help`.
 
-## Step 1: preprocess the tracks
+## Prepare the data
 
-Input: the tracker output of one camera as a text file in MOT format, one line per box:
-`frame, track_id, x, y, w, h, ...` with `x, y` the top-left corner of the box in pixels. In the paper, the perception module is the YOLO26 detector followed by the ByteTrack tracker, run on the video of each camera at 10 frames per second.
+The repository already holds prepared data, so you can skip this part. It turns the tracker output of a camera into the files that training reads. The input is a text file in MOT format, one box per line: `frame, track_id, x, y, w, h, ...`, with `x, y` the top-left corner of the box in pixels. Trajectories are sampled at 10 frames per second; give the frame rate of the tracker with `--orig-fps`.
 
 ```bash
+# 1. tracker output of one camera -> raw trajectory files (training and test)
 python preprocessing/preprocess_tracks.py --data <tracker output>.txt \
     --train-output data/raw_trajectories/<camera>_train.pkl \
     --test-output  data/raw_trajectories/<camera>_test.pkl
-```
 
-What it does, in this order:
-
-1. Takes the centre of each box as the position of the object.
-2. Marks a track as stationary if it moves less than 20 pixels between its first and its last frame.
-3. Fills missing frames inside a track by linear interpolation.
-4. Cuts stationary tracks to their first 20 frames.
-5. Removes tracks shorter than 20 frames.
-6. Splits the tracks into 80 % for training and 20 % for testing. The split is by track, with a fixed seed, so no track is in both sets.
-
-Output: two files per camera, each a table with the columns `frame, trackId, x, y, sceneId, metaId`. The files in `data/raw_trajectories` have exactly this form.
-
-## Step 2: compute the standardization constants
-
-The model works on standardized velocities. The constants are the mean and the standard deviation of position, velocity and acceleration (x and y), computed over the **training** files of all cameras of a setting.
-
-```bash
+# 2. standardization constants, from the training files of the cameras in a client list
 python preprocessing/compute_standardization.py --raw_dir data/raw_trajectories \
     --clients configs/clients_06.txt --out configs/standardization_06.json
-```
 
-The rule: positions are divided by 50; velocity and acceleration are central differences of the position at 0.1 s; the standard deviation is the population value; a negative mean is set to 0; every value is rounded to six decimals.
-
-- `configs/standardization_06.json` holds the constants of the six-intersection setting. The command above reproduces it.
-- `configs/standardization_23.json` holds the constants of the 23-view setting. They are computed over all 23 views, so reproducing them needs the CityFlow and TUMTraf trajectory files as well (see "Data").
-- Add `--per_camera` to compute one set of constants per camera, each from that camera's own training file. The local-only baseline uses these.
-
-## Step 3: process the data
-
-This step turns the raw trajectory files into the files that training reads: it computes velocities and accelerations, stores the standardization constants in every file, and adds 24 rotated copies of each training scene for augmentation.
-
-```bash
-# six-intersection setting
+# 3. processed files that training reads
 python preprocessing/process_data.py --raw_dir data/raw_trajectories --clients configs/clients_06.txt \
     --standardization configs/standardization_06.json --out_dir data/processed_06
+```
 
-# the Chattanooga views of the 23-view setting
-python preprocessing/process_data.py --raw_dir data/raw_trajectories --clients configs/clients_23_chattanooga.txt \
-    --standardization configs/standardization_23.json --out_dir data/processed_23
+A client list (`configs/clients_*.txt`) is a text file with one camera name per line.
 
-# per-camera constants, for the local-only baseline (one folder serves both settings)
+## Train
+
+One run starts a server and one client process per camera on the same machine.
+
+```bash
+python scripts/run_fl.py --strategy fedavg --clients 06 --seed 1
+```
+
+| `--strategy` | Method | Its option |
+|---|---|---|
+| `fedavg` | FedAvg | |
+| `fedprox` | FedProx | `--fedprox_mu` |
+| `fedadambn` | FedAdam: Adam step on the server, BatchNorm statistics averaged | `--fedadambn_eta` |
+| `fedcross` | FedCross | `--fedcross_alpha` |
+| `fedper` | FedPer: the encoder is shared, each client keeps its own flow | |
+| `fedrep` | FedRep: as FedPer, and each round trains the flow first, then the encoder | |
+
+`--clients 06` and `--clients 23` select the client list `configs/clients_06.txt` or `configs/clients_23.txt`. Other options are `--rounds` (default 20, one local epoch each), `--gpu` and `--port` (two runs on one machine need different ports). The model and optimizer settings are in `configs/flowchain.yml` and `src/default_params.py`.
+
+Baselines:
+
+```bash
+python scripts/run_central.py --clients 06 --seed 1                                   # centralized: one model on the pooled training data
+python scripts/run_local.py   --clients 06 --seed 1                                   # local-only: one model per camera
+python scripts/run_local.py   --clients 06 --seed 1 --init_from <run id> --rounds 5   # a finished federated run, fine-tuned at each camera
+```
+
+On one NVIDIA A100, a federated run of 20 rounds took 8 to 12 hours and the centralized baseline 15 to 28 hours.
+
+## Results
+
+Each run writes a folder `runs/<run id>/` with the error of every client after every round, the final model of every client and the logs. To summarize all runs:
+
+```bash
+python scripts/summarize.py --clients 06     # ADE and FDE in pixels per camera and method, mean ± standard deviation over the seeds
+```
+
+ADE and FDE are computed on the test split of each camera after the last round, from the best of 20 sampled trajectories. Test runs made with `--max_batches` are left out.
+
+## Reproducing the paper
+
+The settings of *FLEET: Federated Learning for Edge-Deployable End-to-End Trajectory Forecasting at Urban Intersections*:
+
+- **Settings.** Six intersections (`--clients 06`) and 23 camera views (`--clients 23`), with seeds 1, 2 and 3. The distributed trajectories were built with `--min-movement 10` in step 1.
+- **Hyperparameters.** `--fedprox_mu 0.001`, `--fedadambn_eta 0.1` and `--fedcross_alpha 0.5`, selected on a validation split (`--val_frac 0.1`) at the six intersections.
+- **Local-only baseline.** One set of constants per camera: build `data/processed_per_camera` with the two commands below, then run `run_local.py` with `--per_camera` (column `local-pc` of the summary).
+- **Fine-tuning.** `--init_from` takes the FedAvg run with the same seed (column `fedavgft`).
+- **One scale factor per camera (Appendix A.4).** `python preprocessing/scale_per_camera.py --clients configs/clients_23.txt`, then `run_fl.py` with `--strategy fedavg` or `fedrep`, `--clients 23` and `--scaled`.
+- **Views outside the federation (Appendix A.5).** `python preprocessing/unseen_views.py`, then `run_local.py --clients 17 --init_from <run id>` with a six-intersection run and its seed. `--rounds 0` evaluates without training; FedRep and FedPer then take `--head <intersection>`, one run per intersection. `--rounds 5` adapts to the view; FedRep and FedPer then take `--head mean --head_only`. `summarize.py --clients 17` gives the table.
+- **Other datasets.** The 23-view setting also uses views of CityFlow and TUMTraf, which are not distributed here (see `data/README.md`).
+
+```bash
 python preprocessing/compute_standardization.py --raw_dir data/raw_trajectories \
     --clients configs/clients_23_chattanooga.txt --per_camera --out configs/standardization_per_camera.json
 python preprocessing/process_data.py --raw_dir data/raw_trajectories --clients configs/clients_23_chattanooga.txt \
     --standardization configs/standardization_per_camera.json --out_dir data/processed_per_camera
 ```
 
-The first two commands reproduce the files that are already in `data/processed_06` and `data/processed_23`. The third pair builds `data/processed_per_camera`, which is not distributed because it follows from the raw trajectory files in a few minutes.
-
-## Step 4: train
-
-One run starts one server and one client process per camera on the same machine. Every run uses 20 rounds with one local epoch per round, batch size 128 and Adam with learning rate 5e-4. The paper reports seeds 1, 2 and 3.
-
-Federated strategies (replace `06` by `23` for the 23-view setting):
-
-```bash
-python scripts/run_fl.py --strategy fedavg    --clients 06 --seed 1
-python scripts/run_fl.py --strategy fedprox   --clients 06 --seed 1 --fedprox_mu 0.001
-python scripts/run_fl.py --strategy fedadambn --clients 06 --seed 1 --fedadambn_eta 0.1
-python scripts/run_fl.py --strategy fedcross  --clients 06 --seed 1 --fedcross_alpha 0.5
-python scripts/run_fl.py --strategy fedper    --clients 06 --seed 1
-python scripts/run_fl.py --strategy fedrep    --clients 06 --seed 1
-```
-
-- `fedadambn` is the FedAdam of the paper: the server applies the Adam step to the model parameters and averages the BatchNorm statistics.
-- The values of `--fedprox_mu`, `--fedadambn_eta` and `--fedcross_alpha` were tuned on a validation split (10 % of each client's training tracks, `--val_frac 0.1`) at the six intersections and are used unchanged for the 23 views.
-- FedPer and FedRep exchange the encoder and keep the normalizing flow at each client. FedRep trains the flow and then the encoder in every round, so it passes over the local data twice.
-
-Baselines:
-
-```bash
-python scripts/run_central.py --clients 06 --seed 1                 # centralized: one model on the pooled training data
-python scripts/run_local.py   --clients 06 --seed 1 --per_camera    # local-only: one model per camera, per-camera constants (needs data/processed_per_camera)
-python scripts/run_local.py   --clients 06 --seed 1 --init_from <run id of the FedAvg run with the same seed> --rounds 5   # FedAvg + local fine-tuning
-```
-
-Useful options: `--gpu <id>`, `--port <port>` (two federated runs on one machine need different ports), and `--rounds 2 --max_batches 2` for a quick test of the installation (a few minutes; such runs are tagged `smoke-` and left out of the summaries).
-
-On one NVIDIA A100, a federated run of 20 rounds took 8 to 12 hours in either setting, a local-only run about 8 hours, the centralized run 15 hours (six intersections) or 28 hours (23 views), and fine-tuning about 2 hours.
-
-Each run writes a folder `runs/<run id>/` with the error of every client after every round (`metrics.csv`, `rounds.csv`), the final model of every client and its error on every test window (`<camera>/final_model.pth`, `<camera>/per_sample_final.csv`), and the logs.
-
-## Step 5: summarize
-
-```bash
-python scripts/summarize.py --clients 06     # ADE and FDE in pixels per camera, mean ± standard deviation over the seeds
-python scripts/summarize.py --clients 23
-```
-
-The table has one row per camera and one column per method; `local-pc` is the local-only baseline with per-camera constants and `fedavgft` is FedAvg with local fine-tuning.
-
-ADE and FDE are computed for the model after the last round, on the test split of each camera, from the best of 20 sampled trajectories.
-
-## The experiments of the appendix
-
-Both experiments use all 23 camera views, so running them needs the CityFlow and TUMTraf files as well (see "Data"). The data scripts also accept `configs/clients_23_chattanooga.txt` and `configs/clients_17_chattanooga.txt` to build the part that follows from the distributed views.
-
-### One scale factor per camera (Appendix A.4)
-
-FedAvg and FedRep are trained on the 23 views after the inputs of each camera are divided by one scale factor: the spread of the camera's training velocities relative to the spread pooled over all cameras. `configs/scale_per_camera_23.csv` holds the factors.
-
-```bash
-python preprocessing/scale_per_camera.py --clients configs/clients_23.txt     # writes data/processed_23_scaled
-python scripts/run_fl.py --strategy fedavg --clients 23 --seed 1 --scaled
-python scripts/run_fl.py --strategy fedrep --clients 23 --seed 1 --scaled
-python scripts/summarize.py --clients 23                                      # columns fedavg-scaled and fedrep-scaled
-```
-
-Errors stay in the pixels of the original image, because the metric converts the predictions back with the same constants.
-
-### Camera views outside the federation (Appendix A.5)
-
-The models of the six-intersection federation are evaluated at the 17 other camera views. Each of these views is read with the standardization constants of the six intersections, the constants the models were trained with.
-
-```bash
-python preprocessing/unseen_views.py                                          # writes data/processed_17_unseen
-
-# zero-shot: no training on the new view
-python scripts/run_local.py --clients 17 --seed 1 --init_from <FedAvg run id> --rounds 0
-python scripts/run_local.py --clients 17 --seed 1 --init_from <FedRep run id> --rounds 0 --head Broad
-python scripts/run_local.py --clients 17 --seed 1 --init_from <FedPer run id> --rounds 0 --head Broad
-
-# adaptation: five epochs on the training split of the new view
-python scripts/run_local.py --clients 17 --seed 1 --init_from <FedAvg run id> --rounds 5
-python scripts/run_local.py --clients 17 --seed 1 --init_from <FedRep run id> --rounds 5 --head mean --head_only
-python scripts/run_local.py --clients 17 --seed 1 --init_from <FedPer run id> --rounds 5 --head mean --head_only
-
-python scripts/summarize.py --clients 17
-```
-
-- `--init_from` takes the run id of a finished six-intersection run (step 4), and `--seed` must be the seed of that run.
-- Zero-shot: FedAvg applies its global model. FedRep and FedPer apply the shared encoder with the head of one member intersection, given with `--head`; the paper averages the error over the six heads, so there is one run per intersection.
-- Adaptation: FedAvg fine-tunes its whole model. FedRep and FedPer train a new head on the frozen encoder, starting from the mean of the six trained heads.
-
-## Runtime experiments
-
-The code of the paper's runtime experiments is in `runtime/`, with its own README: the prediction of trajectories with parallel workers on synthetic perception data, and several intersection pipelines running at the same time. The perception module is the YOLO26-L detector as an FP32 TensorRT engine with the ByteTrack tracker from Ultralytics. The multi-intersection experiment needs your own intersection videos.
-
-## Data
-
-| Folder | Content |
-|---|---|
-| `data/raw_trajectories/` | Output of step 1 for the 10 Chattanooga views |
-| `data/processed_06/` | Processed files of the six intersections (constants of the six-intersection setting) |
-| `data/processed_23/` | Processed files of the 10 Chattanooga views with the constants of the 23-view setting |
-
-`data/README.md` lists the files and the number of tracks and windows per view.
-
-**CityFlow and TUMTraf.** The 23-view setting also uses 11 camera views of CityFlow and 2 of the TUMTraf Intersection dataset (sequence R02_S03). Because of the usage restrictions of these datasets, their trajectory files are not distributed here. To get the training and test data of these views, request access to the datasets from their providers, run YOLO26 with ByteTrack on the videos, and follow the data processing above (steps 1 to 3). Step 2 is already done for this setting: use `configs/standardization_23.json` in step 3. Place the resulting files in `data/processed_23/` under the names listed in `configs/clients_23.txt`.
-
-The data files are Python pickles. Load pickles only from sources you trust.
-
 ## Acknowledgements
 
-The forecasting model in `src/models` and the data structures in `src/data` come from FlowChain (Maeda and Ukita, ICCV 2023, https://github.com/meaten/FlowChain-ICCV2023), which builds on Trajectron++ (Salzmann et al., ECCV 2020). The federated training uses Flower (https://flower.ai). The folder `runtime/src` holds a second copy of the FlowChain parts for the runtime experiments, which use Ultralytics (https://github.com/ultralytics/ultralytics) for detection and tracking.
+The forecasting model in `src/models` and the data structures in `src/data` come from FlowChain (Maeda and Ukita, ICCV 2023, https://github.com/meaten/FlowChain-ICCV2023), which builds on Trajectron++ (Salzmann et al., ECCV 2020). The federated training uses Flower (https://flower.ai), and the runtime benchmarks use Ultralytics (https://github.com/ultralytics/ultralytics).
 
 ## License
 

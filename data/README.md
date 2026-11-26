@@ -1,18 +1,18 @@
 # Data
 
-Trajectory data of the 10 Chattanooga camera views used in the paper, from about nine minutes of video per view at 10 frames per second. A trajectory is the sequence of box centres of one tracked object, in pixels of the camera image.
+Trajectory data of 10 camera views at intersections in Chattanooga, from about nine minutes of video per view at 10 frames per second. A trajectory is the sequence of box centres of one tracked object, in pixels of the camera image.
 
 | Folder | Files | Content |
 |---|---|---|
-| `raw_trajectories/` | 20 | Output of step 1 (track preprocessing): one training and one test file per view |
-| `processed_06/` | 12 | Processed files of the six intersections, with the standardization constants of the six-intersection setting |
-| `processed_23/` | 20 | Processed files of the 10 Chattanooga views, with the standardization constants of the 23-view setting |
+| `raw_trajectories/` | 20 | Raw trajectories: one training and one test file per view |
+| `processed_06/` | 12 | Processed files of the six views in `configs/clients_06.txt`, with the constants of `configs/standardization_06.json` |
+| `processed_23/` | 20 | Processed files of all 10 views, with the constants of `configs/standardization_23.json` |
 
-`CHECKSUMS.txt` holds the SHA-256 checksum of every file (`sha256sum -c CHECKSUMS.txt` from this folder).
+The files of a view in `processed_06/` and `processed_23/` hold the same trajectories and differ only in the standardization constants. `CHECKSUMS.txt` holds the SHA-256 checksum of every file (`sha256sum -c CHECKSUMS.txt` from this folder). The files are Python pickles: load pickles only from sources you trust.
 
 ## Views
 
-| Camera view | In the six-intersection setting | Training tracks | Training windows | Test tracks | Test windows |
+| Camera view | In `clients_06` | Training tracks | Training windows | Test tracks | Test windows |
 |---|---|---|---|---|---|
 | Broad | yes | 601 | 57,523 | 151 | 16,727 |
 | Georgia_1 | no | 490 | 58,256 | 123 | 14,663 |
@@ -29,13 +29,9 @@ A window is one training or test sample: 8 observed positions (0.8 s) followed b
 
 ## File formats
 
-- `raw_trajectories/<view>_{train,test}.pkl`: a pickled pandas table with the columns `frame`, `trackId`, `x`, `y` (pixels), `sceneId`, `metaId`. Training and test files of a view share no track.
-- `processed_*/<view>_{train,test}.pkl`: a pickled environment object as used by FlowChain and Trajectron++ (written with `dill`). It holds, for every track, the position divided by 50, the velocity and the acceleration, and the standardization constants. Training files also hold 24 rotated copies of the scene for augmentation, which is why they are much larger than the test files. To load a file, `src/` must be on the Python path, as the launchers set it.
+- `raw_trajectories/<view>_{train,test}.pkl`: a pickled pandas table with the columns `frame`, `trackId`, `x`, `y` (pixels), `sceneId`, `metaId`. The training and the test file of a view share no track.
+- `processed_*/<view>_{train,test}.pkl`: a pickled environment object as used by FlowChain and Trajectron++ (written with `dill`), with the position, velocity and acceleration of every track and the standardization constants. Training files also hold rotated copies of the scene for augmentation, so they are much larger. To load a file, `src/` must be on the Python path.
 
-The files of the same view in `processed_06/` and `processed_23/` hold the same trajectories and differ only in the standardization constants.
+## The other 13 views of `clients_23.txt`
 
-## The other 13 views of the 23-view setting
-
-The 23-view setting also uses 11 views of CityFlow (C002, C003, C004, C005, C028, C041, C042, C043, C044, C045, C046) and 2 views of the TUMTraf Intersection dataset, sequence R02_S03 (s110_camera_basler_south1_8mm, s110_camera_basler_south2_8mm). Because of the usage restrictions of these datasets, their files are not distributed here. To build them, request access to the datasets from their providers, run YOLO26 with ByteTrack on the videos of these views, and follow the data processing described in the main README.
-
-The data files are Python pickles. Load pickles only from sources you trust.
+`configs/clients_23.txt` also lists 11 views of CityFlow (C002, C003, C004, C005, C028, C041, C042, C043, C044, C045, C046) and 2 views of the TUMTraf Intersection dataset, sequence R02_S03 (s110_camera_basler_south1_8mm, s110_camera_basler_south2_8mm). Their files are not distributed here because of the usage restrictions of these datasets. To build them, request the datasets from their providers, run a detector and tracker on the videos (YOLO26 with ByteTrack in the paper), and follow "Prepare the data" and "Reproducing the paper" in the main README. Use `configs/standardization_23.json` in step 3 and write the files to `data/processed_23/` under the names in `configs/clients_23.txt`.
